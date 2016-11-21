@@ -84,7 +84,7 @@ def _test_binary_op(precision, device_id, op_func, left_operand, right_operand,
     else:
         input_op_constant = op_func(a, const_b, **op_param_dict)
         constant_op_input = op_func(const_a, b, **op_param_dict)
-        input_op_input = op_func(a, b, **op_param_dict)
+            input_op_input = op_func(a, b, **op_param_dict)
 
     # create batch by wrapping the data point into a sequence of length one and
     # putting it into a batch of one sample
