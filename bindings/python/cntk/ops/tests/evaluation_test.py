@@ -12,7 +12,7 @@ the forward and the backward pass
 from __future__ import division
 import numpy as np
 import pytest
-from .ops_test_utils import _test_binary_op, AA, precision, PRECISION_TO_TYPE,\
+from .ops_test_utils import sanitize_dtype_cntk, _test_binary_op, AA, I, precision, PRECISION_TO_TYPE,\
         unittest_helper
 
 TARGET_OUT_PAIRS = [
@@ -216,13 +216,14 @@ def test_op_classification_error_with_axis(output_vector, target_vector, axis, d
 
 TARGET_BINARY_CE_OUT_PAIRS = [
     # (target_vector, output_vector, weights)
-    ([[0., 1.0, 0.0, 0.0]], [[0.9, 0.9, 0.0001, 0.0001]]),
-    #([[0., 0., 1., 1]], [[0.2, 0.4, 0.6, 0.8]], [[1.0],[2.0],[3.0],[4.0]]),
-    #([[0., 0., 1.0, 0.]], [[0.8, 0.2, 0.75, 0.3]], [[1.5],[2.5],[3.5],[4.5]]),
+    ([[0.], [1.0], [0.0], [0.0]], [[0.9], [0.9], [0.0001], [0.0001]], [[1.], [1.], [1.], [1.]]),
+    ([[0.], [1.0], [0.0], [0.0]], [[0.9], [0.9], [0.0001], [0.0001]], [[1.], [2.], [3.], [4.]]),
+    ([[0., 0., 1., 1]], [[0.2, 0.4, 0.6, 0.8]], [[1.0],[2.0],[3.0],[4.0]]),
+    ([[0., 0., 1.0, 0.]], [[0.8, 0.2, 0.75, 0.3]], [[1.5],[2.5],[3.5],[4.5]]),
 ]
 
-@pytest.mark.parametrize("target_vector, output_vector", TARGET_BINARY_CE_OUT_PAIRS)
-def test_op_binary_cross_entropy(output_vector, target_vector, device_id, precision):
+@pytest.mark.parametrize("target_vector, output_vector, weight", TARGET_BINARY_CE_OUT_PAIRS)
+def test_op_binary_cross_entropy(output_vector, target_vector, weight, device_id, precision):
     dt = PRECISION_TO_TYPE[precision]
 
     x = AA(output_vector, dtype=dt)
@@ -247,3 +248,51 @@ def test_op_binary_cross_entropy(output_vector, target_vector, device_id, precis
     _test_binary_op(precision, device_id, binary_cross_entropy,
                     output_vector, target_vector,
                     expected_forward, expected_backward)
+
+@pytest.mark.parametrize("target_vector, output_vector, weight", TARGET_BINARY_CE_OUT_PAIRS)
+def test_op_weighted_binary_cross_entropy(output_vector, target_vector, weight, device_id, precision):
+    dt = PRECISION_TO_TYPE[precision]
+
+    x = AA(output_vector, dtype=dt)
+    t = AA(target_vector, dtype=dt)
+    w = AA(weight, dtype=dt)
+
+    forward = -np.sum((t*np.log(x))+(1-t)*np.log(1-x))
+
+    expected_forward = AA([[forward]], dtype=dt)
+    expected_forward.shape = (1,1) + expected_forward.shape
+
+    expected_backward_left = -np.sum((t/x)+(1-t)/(1-x))
+    expected_backward_right = -np.sum(np.log(x)-np.log(1-x))
+
+    expected_backward = {
+        'left_arg':  expected_backward_left,
+        'right_arg': expected_backward_right
+    }
+
+    a = I(shape=x.shape[1:],
+          dtype=sanitize_dtype_cntk(precision),
+          needs_gradient=True,
+          name='a')
+
+    b = I(shape=t.shape[1:],
+          dtype=sanitize_dtype_cntk(precision),
+          needs_gradient=True,
+          name='b')
+
+    weight_variable = I(shape=w.shape[1:],
+                     dtype=sanitize_dtype_cntk(precision),
+                     needs_gradient=True,
+                     name='weight')
+
+    from .. import weighted_binary_cross_entropy
+    input_op_input = weighted_binary_cross_entropy(a, b, weight_variable)
+ 
+    forward_input = {a: x, b: t, weight_variable: w}
+
+    expected_backward = {a: expected_backward_left,
+                         b: expected_backward_right}
+
+    unittest_helper(input_op_input,
+                    forward_input, expected_forward, expected_backward,
+                    device_id=device_id, precision=precision)
