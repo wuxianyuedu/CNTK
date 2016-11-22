@@ -210,7 +210,10 @@ def _has_seq_dim(var, data):
     # Find the innermost data sample
     drill = [data]
     drill_data = data
-    if isinstance(drill_data, np.ndarray) or sparse.issparse(drill_data):
+    if np.isscalar(drill_data) or (isinstance(drill_data, np.ndarray) and drill_data.shape == ()):
+        # case in which either drill_data is scalar or a 0d numpy array
+        return False
+    elif isinstance(drill_data, np.ndarray) or sparse.issparse(drill_data):
         drill_shape = drill_data.shape
     else:
         while isinstance(drill_data, list):
@@ -537,6 +540,10 @@ def sanitize_batch(var, batch, seq_starts=None, dtype=None, device=None):
     if device is None:
         device = use_default_device()
 
+    if np.isscalar(batch):
+        ndav = create_NDArrayView_from_NumPy(np.asarray(batch, dtype), device)
+        return Value(data=ndav)
+
     # batch is now either a dense input that requires a mask, or it is sparse
     if batch_has_seq or seq_starts:
         mask = cntk_py.NDMask((len(batch), max_seq_len),
@@ -765,6 +772,21 @@ def sanitize_var_map(op_arguments, arguments, precision=None,
             arguments = dict([(op_arguments[0], arguments)])
         else:
             raise ValueError('non-dict argument (%s) is not supported for nodes with more than one input' % type(arguments).__name__)
+
+    sample_sizes = [np.atleast_1d(v).shape[0] for v in arguments.values()]
+    if len(set(sample_sizes)) != 1:
+        raise ValueError('not all inputs have the same number of samples: ' +
+                         ", ".join([str(s) for s in sample_sizes]))
+
+    if seq_starts is not None:
+        if not isinstance(seq_starts, (tuple, list)):
+            raise ValueError(
+                'if you specify seq_starts, it needs to be a list')
+
+        sample_size = sample_sizes.pop()
+        if len(seq_starts) != sample_size:
+            raise ValueError('you have %i samples, but seq_starts has only %i' +
+                             'elements' % (sample_sizes, len(seq_starts)))
 
     if precision is not None:
         precision = sanitize_precision(precision)
