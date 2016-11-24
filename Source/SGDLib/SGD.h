@@ -20,6 +20,7 @@
 #include "Profiler.h"
 #include "MASGD.h"
 #include "ASGDHelper.h"
+#include <map>
 using namespace std; // ugh! TODO: get rid of this from .h files!!!
 
 #define CNTK_CHECKPOINT_VERSION_1 1     // 1 -> no version number 
@@ -28,6 +29,8 @@ using namespace std; // ugh! TODO: get rid of this from .h files!!!
 
 
 namespace Microsoft { namespace MSR { namespace CNTK {
+
+struct BestEpoch;
 
 enum class LearningRateSearchAlgorithm : int
 {
@@ -406,7 +409,8 @@ protected:
                                   const std::list<ComputationNodeBasePtr>& learnableNodes,
                                   std::list<Matrix<ElemType>>& smoothedGradients, std::vector<double> smoothedCounts,
                                   const bool learnRateInitialized,
-                                  const double largestPrevLearnRatePerSample);
+                                  const double largestPrevLearnRatePerSample,
+                                  std::map<std::wstring, BestEpoch>& criteriaBestEpoch);
 
     void TrainOneMiniEpochAndReloadModel(ComputationNetworkPtr net,
                                          ComputationNetworkPtr refNet,
@@ -424,7 +428,8 @@ protected:
                                          /*out*/ EpochCriterion& epochCriterion,
                                          /*out*/ std::vector<EpochCriterion>& epochEvalErrors,
                                          std::string prefixMsg,
-                                         const size_t maxNumOfSamples);
+                                         const size_t maxNumOfSamples,
+                                         std::map<std::wstring, BestEpoch>& criteriaBestEpoch);
 
     size_t AdaptiveMinibatchSizing(ComputationNetworkPtr net,
                                    ComputationNetworkPtr refNet,
@@ -441,7 +446,8 @@ protected:
                                    StreamMinibatchInputs* inputMatrices,
                                    const std::list<ComputationNodeBasePtr>& learnableNodes,
                                    std::list<Matrix<ElemType>>& smoothedGradients, std::vector<double> smoothedCounts,
-                                   const double learningRateAdjustmentFactor);
+                                   const double learningRateAdjustmentFactor,
+                                   std::map<std::wstring, BestEpoch>& criteriaBestEpoch);
 
     // uses a small percentage of training data of minibatch to
     // speculatively train with various MB sizes; then picks the best
@@ -459,7 +465,8 @@ protected:
                                       StreamMinibatchInputs* inputMatrices,
                                       const std::list<ComputationNodeBasePtr>& learnableNodes,
                                       std::list<Matrix<ElemType>>& smoothedGradients, std::vector<double> smoothedCounts,
-                                      const size_t minMinibatchSize, const size_t maxMinibatchSize);
+                                      const size_t minMinibatchSize, const size_t maxMinibatchSize,
+                                      std::map<std::wstring, BestEpoch>& criteriaBestEpoch);
 
     // Attemps to compute the error signal for the whole utterance, which will
     // be fed to the neural network as features. Currently it is a workaround
@@ -505,7 +512,7 @@ public:
     // return -1 if nothing exists
     int DetermineStartEpoch(const bool makeMode);
 
-    wstring GetModelNameForEpoch(const int epoch, bool bLastModel = false);
+    wstring GetModelNameForEpoch(const int epoch, bool bLastModel = false) const;
 
 protected:
     void ClipGradient(Matrix<ElemType>& gradient, const size_t actualMBSize) const;
@@ -515,7 +522,8 @@ protected:
                             const std::list<Matrix<ElemType>>& smoothedGradients,
                             const std::vector<double>& smoothedCounts,
                             const double prevCriterion,
-                            const size_t minibatchSize);
+                            const size_t minibatchSize,
+                            const std::map<std::wstring, BestEpoch>& criteriaBestEpoch);
 
     bool TryLoadCheckPointInfo(const size_t epochNumber,
                                /*out*/ size_t& totalSamplesSeen,
@@ -523,14 +531,16 @@ protected:
                                std::list<Matrix<ElemType>>& smoothedGradients,
                                std::vector<double>& smoothedCounts,
                                /*out*/ double& prevCriterion,
-                               /*out*/ size_t& minibatchSize);
+                               /*out*/ size_t& minibatchSize,
+                               std::map<std::wstring, BestEpoch>& criteriaBestEpoch);
     void LoadCheckPointInfo(const size_t epochNumber,
                             /*out*/ size_t& totalSamplesSeen,
                             /*out*/ double& learnRatePerSample,
                             std::list<Matrix<ElemType>>& smoothedGradients,
                             std::vector<double>& smoothedCounts,
                             /*out*/ double& prevCriterion,
-                            /*out*/ size_t& minibatchSize);
+                            /*out*/ size_t& minibatchSize,
+                            std::map<std::wstring, BestEpoch>& criteriaBestEpoch);
 
     wstring GetCheckPointFileNameForEpoch(const int epoch);
 
