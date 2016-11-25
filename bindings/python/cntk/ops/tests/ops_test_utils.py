@@ -84,7 +84,7 @@ def _test_binary_op(precision, device_id, op_func, left_operand, right_operand,
     else:
         input_op_constant = op_func(a, const_b, **op_param_dict)
         constant_op_input = op_func(const_a, b, **op_param_dict)
-            input_op_input = op_func(a, b, **op_param_dict)
+        input_op_input = op_func(a, b, **op_param_dict)
 
     # create batch by wrapping the data point into a sequence of length one and
     # putting it into a batch of one sample
@@ -127,6 +127,7 @@ def unittest_helper(root_node,
     forward = list(forward.values())[0]
 
     forward = np.atleast_1d(forward)
+    expected_forward = np.atleast_1d(expected_forward)
 
     for res, exp in zip(forward, expected_forward):
         assert res.shape == AA(exp).shape

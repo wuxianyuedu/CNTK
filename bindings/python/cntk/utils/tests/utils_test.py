@@ -133,6 +133,8 @@ def test_get_data_type():
     # exception handling
     ((2,2), AA([[1,1],[2,2]]), ValueError),
     (1, [[[1,2]]], ValueError),
+    ((), 1.0, False),
+    ((), AA(1.0), False)
 ])
 def test_has_seq_dim_dense(shape, batch, expected):
     i1 = input_variable(shape)
@@ -202,3 +204,9 @@ def test_sanitize_batch_contiguity():
     b = sanitize_batch(var, batch)
     assert b.shape == (2,1,2,2)
 
+def test_sanitize_batch_scalar():
+    batch = 1.0
+    var = input_variable((), dtype=np.float32)
+    value = sanitize_batch(var, batch)
+    assert value.shape == ()
+    assert np.asarray(value) == AA(batch, var.dtype)
