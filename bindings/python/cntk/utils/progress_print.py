@@ -7,7 +7,7 @@ import time
 import sys
 
 # TODO: Let's switch to import logging in the future instead of print. [ebarsoum]
-class ProgressPrinter:
+class ProgressPrinter(object):
     '''
     Accumulates training time statistics (loss and metric)
     and pretty prints them as training progresses.

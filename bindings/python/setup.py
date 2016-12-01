@@ -9,11 +9,6 @@ import numpy
 
 IS_WINDOWS = platform.system() == 'Windows'
 
-if IS_WINDOWS and sys.version_info.major < 3:
-    print("Detected Python v2 on Windows, which is not yet supported")
-    sys.exit(1)
-
-
 # TODO should handle swig path specified via build_ext --swig-path
 if os.system('swig -version 1>%s 2>%s' % (os.devnull, os.devnull)) != 0:
     print("Please install swig (>= 3.0.10) and include it in your path.\n")
