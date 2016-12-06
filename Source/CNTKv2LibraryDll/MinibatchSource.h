@@ -45,7 +45,9 @@ namespace CNTK
         std::unordered_set<StreamInformation> m_streamInfos;
         bool m_epochEndReached;
         size_t m_prevMinibatchSize;
-        size_t m_epochSize;
+        size_t m_epochSize; // TODO: rename to totalSamplesToRead;
+        size_t m_numSamplesSeen;
+        size_t m_sweepIndex;
         size_t m_truncationLength;
         std::unordered_map<StreamInformation, MinibatchData> m_minibatchData;
         std::vector<Microsoft::MSR::CNTK::StreamDescriptionPtr> m_compositeDataReaderStreamDescs;

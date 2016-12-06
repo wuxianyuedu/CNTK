@@ -3461,18 +3461,16 @@ namespace CNTK
     ///
     struct MinibatchData
     {
-        MinibatchData() 
-            : data(nullptr), numberOfSequences(0), numberOfSamples(0), sweepEnd(false)
+        MinibatchData() : MinibatchData(nullptr)
         {}
 
         // a convenience constructor to allow passing ValuePtr arguments in place 
         // of MinibatchData parameter (e.g., in Trainer::TrainMinibatch)
-        MinibatchData(ValuePtr value) 
-            : data(value), numberOfSequences(0), numberOfSamples(0), sweepEnd(false)
+        MinibatchData(ValuePtr value) : MinibatchData(value, 0)
         {}
 
         MinibatchData(ValuePtr value, size_t numSamples, bool sweepEnd = false) 
-            : data(value), numberOfSequences(numSamples), numberOfSamples(numSamples), sweepEnd(sweepEnd) 
+            : MinibatchData(value, numSamples, numSamples, sweepEnd)
         {}
 
         MinibatchData(ValuePtr value, size_t numSequnces, size_t numSamples, bool sweepEnd) 

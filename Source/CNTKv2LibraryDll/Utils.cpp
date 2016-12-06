@@ -266,7 +266,9 @@ namespace CNTK
     template <typename T>
     void TrainingParameterSchedule<T>::ConstructSchedule(const std::vector<std::pair<size_t, T>>& schedule)
     {
-        const auto epochSize = (m_epochSize == FullDataSweep) ? 1 : m_epochSize;
+        // In case of the FullDataSweep, the scheduling unit is just 1 sweep, 
+        // otherwise, it's the epoch size in samples.
+        const auto unitSize = (m_epochSize == FullDataSweep) ? 1 : m_epochSize;
 
         if (schedule.size() == 0)
             RuntimeError("TrainingParameterSchedule::ConstructSchedule : schedule is empty.");
@@ -280,7 +282,7 @@ namespace CNTK
                 RuntimeError("TrainingParameterSchedule::ConstructSchedule : unit count in the 'schedule' argument cannot be 0.");
 
             unitCount += (pair.first != 0) ? pair.first : 1;
-            m_schedule[epochSize * unitCount] = pair.second;
+            m_schedule[unitSize * unitCount] = pair.second;
         }
     }
 

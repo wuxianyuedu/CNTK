@@ -70,7 +70,7 @@ namespace CNTK
     /*static*/ const std::wstring CompositeMinibatchSource::MinibatchSourcePositionAttributeName = L"minibatchSourcePosition";
 
     CompositeMinibatchSource::CompositeMinibatchSource(const Dictionary& configuration, DistributedCommunicatorPtr communicator)
-        : m_epochEndReached(false), m_prevMinibatchSize(0), m_epochSize(MinibatchSource::InfinitelyRepeat), m_truncationLength(0), m_communicator(communicator)
+        : m_epochEndReached(false), m_prevMinibatchSize(0), m_epochSize(MinibatchSource::InfinitelyRepeat), m_sweepIndex(0), m_truncationLength(0), m_communicator(communicator)
     {
         // The CNTK reader implementation requires for each deserializer both the module and deserializer type be specified
         // This is redundant and the V2 API users will just specify type from which the module is automatically inferred
@@ -155,10 +155,15 @@ namespace CNTK
     {
         m_minibatchData.clear();
 
-        if (m_epochEndReached && m_epochSize == MinibatchSource::InfinitelyRepeat)
+        if (m_epochEndReached && 
+            // we never stop in case of "infinite repeat" mode.
+            ((m_epochSize == MinibatchSource::InfinitelyRepeat) ||
+            // if the maximum number of samples is bigger than the sweep size, keep on going, until we have seen enough samples.
+            (m_epochSize != MinibatchSource::FullDataSweep && m_epochSize > m_numSamplesSeen))) 
         {
             m_epochEndReached = false;
-            m_prevMinibatchSize = 0; // force-start a new epoch (sweep)
+            m_sweepIndex++;
+            m_prevMinibatchSize = 0; // force-start a new epoch/sweep.
         }
 
         if (!m_epochEndReached)
@@ -176,12 +181,9 @@ namespace CNTK
                 epochConfig.m_workerRank = m_communicator ? m_communicator->CurrentWorker().m_globalRank : 0;
                 epochConfig.m_minibatchSizeInSamples = minibatchSizeInSamples;
                 epochConfig.m_truncationSize = m_truncationLength;
-
-                epochConfig.m_totalEpochSizeInSamples = m_epochSize;
-                if (m_epochSize == MinibatchSource::FullDataSweep || m_epochSize == MinibatchSource::InfinitelyRepeat)
-                    epochConfig.m_totalEpochSizeInSamples = Microsoft::MSR::CNTK::requestDataSize;
-                
-                epochConfig.m_epochIndex = 0;
+                // Configure the reader to always do a full data sweep.
+                epochConfig.m_totalEpochSizeInSamples = Microsoft::MSR::CNTK::requestDataSize;
+                epochConfig.m_epochIndex = m_sweepIndex;
                 m_matrices.clear();
 
                 std::unordered_set<InputStreamDescription> inputs;
@@ -211,6 +213,13 @@ namespace CNTK
                 m_prevMinibatchSize = minibatchSizeInSamples;
             }
 
+            if (m_epochSize != MinibatchSource::InfinitelyRepeat && m_epochSize != MinibatchSource::FullDataSweep)
+            {
+                // Trim the very last minibatch, if needed.
+                minibatchSizeInSamples = std::min(minibatchSizeInSamples, (m_epochSize - m_numSamplesSeen));
+            }
+            
+
             if (minibatchSizeInSamples != m_prevMinibatchSize)
             {
                 std::map<std::wstring, int> inputDescriptions;
@@ -229,8 +238,10 @@ namespace CNTK
 
             auto compositeReaderMinibatchDataEmpty = m_shim->GetMinibatch(m_matrices);
             m_epochEndReached = m_shim->IsEndOfEpoch();
-            bool hasReachedSweepEnd = m_epochEndReached && (m_epochSize == MinibatchSource::FullDataSweep || m_epochSize == MinibatchSource::InfinitelyRepeat);
+            // since the reader is configured with the epoch size set to the full data sweep, both end of epoch and the end of sweep coincide.
+            bool hasReachedSweepEnd = m_epochEndReached; 
 
+            size_t actualNumberOfSamples = 0;
             for (const auto& s: m_streamInfos)
             {
                 auto input = m_matrices.GetInput(s.m_name);
@@ -256,11 +267,18 @@ namespace CNTK
                     size_t numSamples = input.pMBLayout->GetActualNumSamples();
                     size_t numSequences = input.pMBLayout->GetNumSequences();
 
+                    // Actual number of samples in the minibatch is computed as the maximum across all streams 
+                    // (the same way it's done in the reader). 
+                    // TODO: this is a make-do heuristic to use with variable length sequences 
+                    // (in frame mode all inputs have the same number of  samples). Get rid of max, once we support MB size in sequences.
+                    actualNumberOfSamples = std::max(actualNumberOfSamples, numSamples); 
+
                     m_minibatchData[currentStreamInfo] = { minibatchValuePtr, numSequences, numSamples, hasReachedSweepEnd };
                 }
                 else
                     LogicError("Input data of type other than DataType::Float is currently unsupported by the CNTK built-in composite MinibatchSource!");
             }
+            m_numSamplesSeen += actualNumberOfSamples;
         }
 
         return m_minibatchData;
