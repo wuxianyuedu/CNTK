@@ -2,6 +2,10 @@
 
 ## Python
 
+### Getting the data
+
+MNIST and CIFAR-10 datasets are not included in the CNTK distribution but can be easily downloaded and converted by following the instructions in [DataSets/MNIST](../../../DataSets/MNIST) and [DataSets/CIFAR-10](../../../DataSets/CIFAR-10). We recommend you to keep the downloaded data in the respective folder while downloading, as the scripts in this folder assume that by default.
+
 ### ConvNet_MNIST.py
 
 Our first example applies CNN on the MNIST dataset. The network we use contains three convolution layers and two dense layers. Dropout is applied after the first dense layer. No data augmentation is used in this example.
@@ -32,3 +36,10 @@ Run the example from the current folder using:
 `python ConvNet_CIFAR10_DataAug.py`
 
 We use a fixed crop ratio of `0.8` and scale the image to `32x32` pixels for training. Since all training images are pre-padded to `40x40` pixels, effectively we only perform translation transform without scaling. The accuracy of the network on test data is around `14%`, which is a lot better than the previous model.
+
+### ConvNet_CIFAR10_DataAug_Distributed.py
+
+The fourth example uses the same CNN as ConvNet_CIFAR10_DataAug.py, but it adds support for distributed training with simple aggregation. For a reference on distributed training, please check [here](https://github.com/Microsoft/CNTK/wiki/Multiple-GPUs-and-machines).
+Note that [this example](./ConvNet_CIFAR10_DataAug_Distributed.py) supports CPU-only build.
+
+`mpiexec -n <#workers> python ConvNet_CIFAR10_DataAug_Distributed.py`

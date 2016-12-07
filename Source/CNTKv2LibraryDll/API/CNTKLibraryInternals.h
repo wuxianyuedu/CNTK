@@ -218,6 +218,9 @@ namespace CNTK
         CNTK_API FunctionPtr Slice(const Variable& operand, const Axis& axis, int beginIndex, int endIndex, const std::wstring& name = L"");
         CNTK_API FunctionPtr ReduceElements(const Variable& operand, const std::wstring& reductionOpName, const Axis& axis, const std::wstring& name = L"");
 
+        // This is meant for debugging purposes only and is very likely to be deprecated in the future.
+        CNTK_API void SaveAsLegacyModel(const FunctionPtr& rootFunction, const std::wstring& modelFile);
+
         CNTK_API size_t NewUniqueId();
 
         // Internal hooks for testing and higher-level bindings
@@ -250,14 +253,6 @@ namespace CNTK
 
         CNTK_API bool AreEqual(const ::CNTK::NDArrayView& view1, const ::CNTK::NDArrayView& view2, double relativeTolerance = 0.0, double absoluteTolerance = 0.0);
 
-        CNTK_API ::CNTK::FunctionPtr LoadLegacyModel(::CNTK::DataType dataType, const std::wstring& modelFile, const ::CNTK::DeviceDescriptor& computeDevice);
-
-        CNTK_API void SaveAsLegacyModel(const ::CNTK::FunctionPtr& rootFunction, const std::wstring& modelFile);
-
-        template <typename ElementType>
-        Variable GetVariable(const  Microsoft::MSR::CNTK::ComputationNodeBasePtr& node,
-                             std::unordered_map<Microsoft::MSR::CNTK::ComputationNodeBasePtr, ::CNTK::Variable>& nodeToVariableMap,
-                             std::unordered_map<::CNTK::Variable, ::CNTK::Variable>& placeholderReplacements,
-                             std::unordered_set<::CNTK::FunctionPtr>& allPrimitiveFunctions);
+        class VariableResolver;
     }
 }

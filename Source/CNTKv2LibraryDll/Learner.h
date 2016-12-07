@@ -41,6 +41,19 @@ namespace CNTK
 
         std::string LearnerType() const;
 
+        // Returns current (per-sample) learning rate.
+        double LearningRate(size_t minibatchSize) const
+        {
+            auto learningRate = Learner::LearningRate();
+            if (m_learningRateSchedule.Unit() == LearningRateSchedule::UnitType::Minibatch)
+            {
+                // learning rate needs to be converted to the per-sample value.
+                return (minibatchSize == 0) ? 0.0 : learningRate / minibatchSize;
+            }
+
+            return learningRate;
+        }
+
         AdditionalLearningOptions m_additionalOptions;
 
         std::unordered_map<Parameter, NDArrayViewPtr> m_smoothedGradientValues;
@@ -176,11 +189,7 @@ namespace CNTK
         LearnerAdaGrad(const std::vector<Parameter>& parameters,
                        const LearningRateSchedule& learningRateSchedule,
                        bool needAveMultiplier,
-                       AdditionalLearningOptions additionalOptions)
-                       : LearnerBase(parameters, learningRateSchedule, additionalOptions, /*allocateSmoothGradients*/ true),
-                       m_needAveMultiplier(needAveMultiplier)
-    {
-    }
+                       AdditionalLearningOptions additionalOptions);
 
     protected:
         bool m_needAveMultiplier;

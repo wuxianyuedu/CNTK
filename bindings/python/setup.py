@@ -20,7 +20,7 @@ if os.system('swig -version 1>%s 2>%s' % (os.devnull, os.devnull)) != 0:
     sys.exit(1)
 
 if IS_WINDOWS:
-    if shutil.which("cl") is None:
+    if os.system('cl /? -version 1>%s 2>%s' % (os.devnull, os.devnull)) != 0:
         print("Compiler was not found in path. Please run this from a Visual Studio 2013 x64 Native Tools Command Prompt,\n"
               "e.g., by running the following command:\n"
               "  \"C:\\Program Files (x86)\\Microsoft Visual Studio 12.0\\VC\\vcvarsall\" amd64\n")
@@ -71,13 +71,9 @@ def strip_ext(fn):
 if IS_WINDOWS:
     libname_rt_ext = '.dll'
 
-    link_libs = [strip_ext(strip_path(fn)) for fn in
-                 glob(os.path.join(CNTK_LIB_PATH, '*.lib'))]
+    link_libs = ["CNTKLibrary-2.0"]
 else:
-    link_libs = [
-        "cntklibrary-2.0",
-        "cntkmath"
-    ]
+    link_libs = ["cntklibrary-2.0"]
     libname_rt_ext = '.so'
 
 
@@ -115,11 +111,13 @@ if IS_WINDOWS:
         "/DEBUG",
         "/Zi",
     ]
+    extra_link_args = ['/DEBUG']
     runtime_library_dirs = []
 else:
     extra_compile_args += [
         '--std=c++11',
     ]
+    extra_link_args = []
 
     # Expecting the dependent libs (libcntklibrary-2.0.so, etc.) inside
     # site-packages/cntk/libs.
@@ -146,7 +144,7 @@ cntk_module = Extension(
     ],
 
     extra_compile_args=extra_compile_args,
-
+    extra_link_args=extra_link_args,
     language="c++",
 )
 
@@ -165,7 +163,7 @@ else:
     kwargs = dict(package_data = package_data)
 
 setup(name="cntk",
-      version="2.0.beta3.0",
+      version="2.0.beta5.0",
       url="http://cntk.ai",
       ext_modules=[cntk_module],
       packages=packages,

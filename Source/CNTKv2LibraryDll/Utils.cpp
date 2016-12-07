@@ -13,8 +13,8 @@
 #include "CNTKLibrary.h"
 #include "Utils.h"
 #include "Serialization.h"
-#include "Function.h"
 #include <fcntl.h>
+#include "PrimitiveFunction.h"
 
 using namespace std;
 
@@ -244,7 +244,7 @@ namespace CNTK
     }
 
     template <typename T>
-    TrainingParameterSchedule<T>::TrainingParameterSchedule(const vector<T>& schedule, size_t epochSize, UnitType unit) 
+    TrainingParameterSchedule<T>::TrainingParameterSchedule(const vector<T>& schedule, UnitType unit, size_t epochSize) 
         : m_unit(unit), m_epochSize(epochSize)
     {
         std::vector<std::pair<size_t, T>> s(schedule.size());
@@ -257,7 +257,7 @@ namespace CNTK
     }
 
     template <typename T>
-    TrainingParameterSchedule<T>::TrainingParameterSchedule(const vector<std::pair<size_t, T>>& schedule, size_t epochSize, UnitType unit)
+    TrainingParameterSchedule<T>::TrainingParameterSchedule(const vector<std::pair<size_t, T>>& schedule, UnitType unit, size_t epochSize)
         : m_unit(unit), m_epochSize(epochSize)
     {
         ConstructSchedule(schedule);
@@ -381,6 +381,11 @@ namespace CNTK
 
     std::shared_ptr<std::fstream> GetFstream(const std::wstring& filePath, bool readOnly)
     {
+        if (!readOnly)
+        {
+            msra::files::make_intermediate_dirs(filePath.c_str());
+        }
+
         std::shared_ptr<std::fstream> stream;
         std::ios_base::openmode mode = std::ios_base::binary | (readOnly ? std::ios_base::in : std::ios_base::out);
 #ifdef _MSC_VER
@@ -398,6 +403,11 @@ namespace CNTK
 
     int GetFileDescriptor(const std::wstring& filePath, bool readOnly)
     {
+        if (!readOnly)
+        {
+            msra::files::make_intermediate_dirs(filePath.c_str());
+        }
+
         auto mode = (readOnly ? O_RDONLY : ( O_CREAT | O_WRONLY));
         int fd;
 #ifdef _MSC_VER

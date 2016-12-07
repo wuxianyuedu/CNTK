@@ -119,6 +119,7 @@
     <ClCompile Include="Common.cpp" />
     <ClCompile Include="DeviceSelectionTests.cpp" />
     <ClCompile Include="LearnerTests.cpp" />
+    <ClCompile Include="MinibatchSourceTest.cpp" />
     <ClCompile Include="Seq2Seq.cpp" />
     <ClCompile Include="SerializationTests.cpp" />
     <ClCompile Include="FeedForwardTests.cpp" />
@@ -130,6 +131,7 @@
     <ClCompile Include="TensorTests.cpp" />
     <ClCompile Include="TrainerTests.cpp" />
     <ClCompile Include="TruncatedLSTMAcousticModel.cpp" />
+    <ClCompile Include="ValueTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common.h" />

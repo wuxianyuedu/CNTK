@@ -126,7 +126,7 @@ inline void SaveAndReloadModel(CNTK::FunctionPtr& functionPtr, const std::vector
     }
 
     functionPtr->SaveModel(tempModelPath);
-    functionPtr = CNTK::Function::LoadModel(functionPtr->Outputs()[0].GetDataType(), tempModelPath, device);
+    functionPtr = CNTK::Function::LoadModel(tempModelPath, device);
 
     if (_wunlink(tempModelPath.c_str()) != 0)
          throw std::runtime_error("Error deleting temp model file 'feedForward.net'");
@@ -157,7 +157,7 @@ inline CNTK::FunctionPtr FullyConnectedLinearLayer(CNTK::Variable input, size_t 
     assert(input.Shape().Rank() == 1);
     size_t inputDim = input.Shape()[0];
 
-    auto timesParam = CNTK::Parameter({ outputDim, inputDim }, CNTK::DataType::Float, CNTK::GlorotUniformInitializer(), device, L"timesParam");
+    auto timesParam = CNTK::Parameter({ outputDim, inputDim }, CNTK::DataType::Float, CNTK::GlorotUniformInitializer(CNTK::SentinelValueForInferParamInitRank, CNTK::SentinelValueForInferParamInitRank, CNTK::DefaultParamInitScale, 1), device, L"timesParam");
     auto timesFunction = CNTK::Times(timesParam, input, L"times");
 
     auto plusParam = CNTK::Parameter({ outputDim }, 0.0f, device, L"plusParam");
@@ -182,7 +182,7 @@ inline CNTK::FunctionPtr FullyConnectedFeedForwardClassifierNet(CNTK::Variable i
     for (size_t i = 1; i < numHiddenLayers; ++i)
         classifierRoot = FullyConnectedDNNLayer(classifierRoot, hiddenLayerDim, device, nonLinearity);
 
-    auto outputTimesParam = CNTK::Parameter(CNTK::NDArrayView::RandomUniform<float>({ numOutputClasses, hiddenLayerDim }, -0.5, 0.5, CNTK::SentinelValueForAutoSelectRandomSeed, device));
+    auto outputTimesParam = CNTK::Parameter(CNTK::NDArrayView::RandomUniform<float>({ numOutputClasses, hiddenLayerDim }, -0.5, 0.5, 1, device));
     return Times(outputTimesParam, classifierRoot, 1, outputName);
 }
 
@@ -207,13 +207,13 @@ std::pair<CNTK::FunctionPtr, CNTK::FunctionPtr> LSTMPCellWithSelfStabilization(C
         return CNTK::Parameter({ dim }, (ElementType)0.0, device);
     };
 
-    unsigned long seed = 1;
-    auto createProjectionParam = [device, &seed](size_t outputDim) {
-        return CNTK::Parameter({ outputDim, CNTK::NDShape::InferredDimension }, CNTK::AsDataType<ElementType>(), CNTK::GlorotUniformInitializer(1, 0, 1, seed++), device);
+    unsigned long seed2 = 1;
+    auto createProjectionParam = [device, &seed2](size_t outputDim) {
+        return CNTK::Parameter({ outputDim, CNTK::NDShape::InferredDimension }, CNTK::AsDataType<ElementType>(), CNTK::GlorotUniformInitializer(1, 0, 1, seed2++), device);
     };
 
-    auto createDiagWeightParam = [device, &seed](size_t dim) {
-        return CNTK::Parameter({ dim }, CNTK::AsDataType<ElementType>(), CNTK::GlorotUniformInitializer(1, 0, 1, seed++), device);
+    auto createDiagWeightParam = [device, &seed2](size_t dim) {
+        return CNTK::Parameter({ dim }, CNTK::AsDataType<ElementType>(), CNTK::GlorotUniformInitializer(1, 0, 1, seed2++), device);
     };
 
     auto stabilizedPrevOutput = Stabilize<ElementType>(prevOutput, device);
@@ -450,10 +450,9 @@ inline CNTK::FunctionPtr LSTMSequenceClassiferNet(const CNTK::Variable& input, s
     return FullyConnectedLinearLayer(thoughtVectorFunction, numOutputClasses, device, outputName);
 }
 
-template <typename ElementType> 
 inline bool AreEqual(const CNTK::NDArrayViewPtr& view1, const CNTK::NDArrayViewPtr& view2)
 {
-    return AreEqual<ElementType>(*view1, *view2);
+    return CNTK::Internal::AreEqual(*view1, *view2);
 }
 
 inline bool AreEqual(const CNTK::Variable& var1, const CNTK::Variable& var2)

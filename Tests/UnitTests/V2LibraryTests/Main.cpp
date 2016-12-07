@@ -10,6 +10,7 @@
 using namespace CNTK;
 
 void NDArrayViewTests();
+void ValueTests();
 void TensorTests();
 void FeedForwardTests();
 void RecurrentFunctionTests();
@@ -23,6 +24,7 @@ void TrainSequenceToSequenceTranslator();
 void TrainTruncatedLSTMAcousticModelClassifer();
 void DeviceSelectionTests();
 void MultiThreadsEvaluation(bool);
+void MinibatchSourceTests();
 
 int main()
 {
@@ -49,6 +51,7 @@ int main()
     DeviceSelectionTests();
 
     NDArrayViewTests();
+    ValueTests();
     TensorTests();
     FunctionTests();
 
@@ -64,6 +67,8 @@ int main()
 
     TrainSequenceToSequenceTranslator();
     TrainTruncatedLSTMAcousticModelClassifer();
+
+    MinibatchSourceTests();
 
     MultiThreadsEvaluation(IsGPUAvailable());
 
