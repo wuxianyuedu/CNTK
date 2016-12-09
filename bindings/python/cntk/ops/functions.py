@@ -508,7 +508,7 @@ class Function(cntk_py.Function):
             >>> b = C.input_variable(shape=1, name='b')
             >>> c = C.plus(a, b, name='c')
             >>> c.find_by_name('b').name
-            'b'
+            u'b'
             >>> c.find_by_name('z') is None
             True
             
