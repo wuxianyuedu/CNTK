@@ -95,7 +95,7 @@ class Communicator(cntk_py.DistributedCommunicator):
         '''
         Returns rank of current process.
         '''
-        return cntk_py.mpicommunicator().current_worker().global_rank
+        return cntk_py.mpicommunicator().current_worker().m_global_rank
 
 class DistributedLearner(cntk_py.DistributedLearner):
     '''
