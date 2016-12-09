@@ -182,7 +182,7 @@ namespace Microsoft.MSR.CNTK.Extensibility.Managed.CSEvalClient
                 using (var model = new IEvaluateModelManagedF())
                 {
                     // Load model
-                    string modelFilePath = Path.Combine(Environment.CurrentDirectory, @".\Output\Models\01_OneHidden");
+                    string modelFilePath = @"C:\CNTKMisc\EvalStackOverflow_DavidPisani\ResNet_152.5"; // Path.Combine(Environment.CurrentDirectory, @".\Output\Models\01_OneHidden");
                     ThrowIfFileNotExist(modelFilePath, 
                         string.Format("Error: The model '{0}' does not exist. Please follow instructions in README.md in <CNTK>/Examples/Image/GettingStarted to create the model.", modelFilePath));
 
