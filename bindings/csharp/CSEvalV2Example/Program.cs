@@ -127,7 +127,7 @@ namespace CSEvalV2Example
         // The input data contains multiple sequences and each sequence contains multiple samples.
         // There is only one non-zero value in each sample, so the sample can be represented by the index of this non-zero value
         //
-        static void OneHoteExample()
+        static void OneHotExample()
         {
             var vocabToIndex = new Dictionary<string, uint>();
             var indexToVocab = new Dictionary<uint, string>();
@@ -177,6 +177,7 @@ namespace CSEvalV2Example
 
             // Prepare output
             const string outputNodeName = "out.z_output";
+            Variable outputVar = myFunc.Outputs.Where(variable => string.Equals(variable.Name, outputNodeName)).Single();
 
             // Create ouput map. Using null as Value to indicate using system allocated memory.
             var outputMap = new Dictionary<string, Value>();
@@ -191,7 +192,7 @@ namespace CSEvalV2Example
 
             // Get output as onehot vector
             // void CopyTo(List<List<uint>>)
-            outputVal.CopyTo(outputNodeName, outputData);
+            outputVal.CopyTo(outputVar, outputData);
             var numOfElementsInSample = vocabSize;
 
             // output the result

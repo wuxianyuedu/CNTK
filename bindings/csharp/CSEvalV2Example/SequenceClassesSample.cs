@@ -12,7 +12,7 @@ namespace CSEvalV2Example
     public class SequenceClassesSample
     {
         // The example shows how to use Sequence class.
-        static void DenseExample()
+        public static void DenseSequence()
         {
             const string outputNodeName = "Plus2060_output";
 
@@ -87,28 +87,94 @@ namespace CSEvalV2Example
             outputVal.CopyTo(outputVar, outputData);
 
             // Output results
-            var numOfElementsInSample = outputVar.Shape.TotalSize;
+            // Use sample based iterator to get result.
+        }
+
+        // 
+        // The example uses OneHot vector as input and output for evaluation
+        // The input data contains multiple sequences and each sequence contains multiple samples.
+        // There is only one non-zero value in each sample, so the sample can be represented by the index of this non-zero value
+        //
+        public static void OneHotSequence()
+        {
+            var vocabToIndex = new Dictionary<string, uint>();
+            var indexToVocab = new Dictionary<uint, string>();
+            uint vocabSize = 10000;
+
+            Function myFunc = Function.LoadModel("atis.model");
+
+            // Get input variable 
+            const string inputNodeName = "features";
+
+            // The input data. 
+            // Each sample is represented by a onehot vector, so the index of the non-zero value of each sample is saved in the inner list
+            // The outer list represents sequences of the batch.
+            var inputBatch = new List<SequenceOneHotVector>();
+            var inputSentences = new List<string>() { 
+                "BOS i would like to find a flight from charlotte to las vegas that makes a stop in st. louis EOS",
+                "BOS I want to book a flight from NewYork to Seattle EOS"
+            };
+
+            // The number of sequences in this batch
+            int numOfSequences = inputSentences.Count;
+
+            for (int seqIndex = 0; seqIndex < numOfSequences; seqIndex++)
+            {
+                // the input for one sequence 
+                var seqData = new SequenceOneHotVector(vocabSize);
+                // Get the word from the sentence.
+                string[] substring = inputSentences[seqIndex].Split(' ');
+                foreach (var str in substring)
+                {
+                    // Get the index of the word
+                    var index = vocabToIndex[str];
+                    // Add the sample to the sequence
+                    seqData.Add(index);
+                }
+                // Add the sequence to the batch
+                inputBatch.Add(seqData);
+            }
+
+            // Create the Value representing the data.
+            // void CreateValue<T>(uint vocabularySize, List<List<uint> oneHotIndexes, DeviceDescriptor computeDevice) 
+            Value inputValue = Value.Create<float>(inputBatch, DeviceDescriptor.CPUDevice);
+
+            // Create input map
+            var inputMap = new Dictionary<string, Value>();
+            inputMap.Add(inputNodeName, inputValue);
+
+            // Prepare output
+            const string outputNodeName = "out.z_output";
+
+            // Create ouput map. Using null as Value to indicate using system allocated memory.
+            var outputMap = new Dictionary<string, Value>();
+            outputMap.Add(outputNodeName, null);
+
+            // Evalaute
+            // Todo: test on GPUDevice()?
+            myFunc.Evaluate(inputMap, outputMap, DeviceDescriptor.CPUDevice);
+
+            var outputData = new List<SequenceOneHotVector>();
+            Value outputVal = outputMap[outputNodeName];
+
+            // Get output as onehot vector
+            // void CopyTo(List<List<uint>>)
+            Variable outputVar = myFunc.Outputs.Where(variable => string.Equals(variable.Name, outputNodeName)).Single();
+            outputVal.CopyTo(outputVar, outputData);
+            var numOfElementsInSample = vocabSize;
+
+            // output the result
             uint seqNo = 0;
             foreach (var seq in outputData)
             {
-                uint elementIndex = 0;
-                uint sampleIndex = 0;
-                foreach (var data in seq)
+                Console.Write("Seq=" + seqNo + ":");
+                foreach (var index in seq)
                 {
-                    // a new sample starts.
-                    if (elementIndex++ == 0)
-                    {
-                        Console.Write("Seq=" + seqNo + ", Sample=" + sampleIndex + ":");
-                    }
-                    Console.Write(" " + data);
-                    // reach the end of a sample.
-                    if (elementIndex == numOfElementsInSample)
-                    {
-                        Console.WriteLine(".");
-                        elementIndex = 0;
-                        sampleIndex++;
-                    }
+                    // get the word based on index
+                    Console.Write(indexToVocab[index]);
                 }
+                Console.WriteLine();
+                // next sequence.
                 seqNo++;
             }
         }

@@ -13,23 +13,6 @@ namespace CNTK
 {
     public static class ValueExtensions
     {
-        public static void CopyTo<T>(this Value value, string name, List<List<T>> data)
-        {
-            throw new NotImplementedException("Not implemented");
-        }
-
-        public static void CopyTo<T>(this Value value, Variable variable, List<Sequence<T>> data)
-        {
-            var rawData = new List<List<T>>();
-            CopyTo(value, variable, rawData);
-            // Todo: optimize to avoid data copy
-            foreach (var l in rawData)
-            {
-                var seq = new Sequence<T>(variable.Shape);
-                seq.AddRange(l);
-                data.Add(seq);
-            }
-        }
 
         // The value represents a n-dimensional tensor with 2 dynamic axes: sequence and batch
         // It assumes that only the highest 2 axes are dynamic, and all the other axes are static. 
@@ -49,6 +32,8 @@ namespace CNTK
 
             var variableShape = variable.Shape;
             var valueShape = value.Shape;
+
+            // Todo: can a value only have the sequencee axis, but no batch axis??
             if (variableShape != value.Shape.SubShape(0, valueShape.Rank - 2))
             {
                 throw new ArgumentException("The variable and value does not have same shape.");
@@ -114,6 +99,42 @@ namespace CNTK
         {
             throw new NotImplementedException("Not implemented");
         }
+        public static void CopyTo<T>(this Value value, Variable variable, List<Sequence<T>> data)
+        {
+            var rawData = new List<List<T>>();
+            CopyTo(value, variable, rawData);
+            // Todo: optimize to avoid data copy
+            foreach (var l in rawData)
+            {
+                var seq = new Sequence<T>(variable.Shape);
+                seq.AddRange(l);
+                data.Add(seq);
+            }
+        }
 
+        public static void CopyTo<T>(this Value value, Variable variable, List<SequenceOneHotVector> data)
+        {
+            if (variable.Shape.Rank > 1)
+            {
+                throw new System.ArgumentException("The OneHot vector requires the variable has only 1 dimension.");
+            }
+
+            // Todo: can a value only have the sequencee axis, but no batch axis??
+            if (value.Shape.SubShape(0, value.Shape.Rank-2) != variable.Shape)
+            {
+                 throw new ArgumentException("The variable and value does not have same shape.");
+            }
+            
+            var vocabSize = variable.Shape[0];
+            var rawData = new List<List<uint>>();
+            CopyTo(value, variable, rawData);
+            // Todo: optimize to avoid data copy
+            foreach (var l in rawData)
+            {
+                var seq = new SequenceOneHotVector(vocabSize);
+                seq.AddRange(l);
+                data.Add(seq);
+            }
+        }
     }
 }
