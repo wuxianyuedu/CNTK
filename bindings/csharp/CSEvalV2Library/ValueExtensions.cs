@@ -18,6 +18,19 @@ namespace CNTK
             throw new NotImplementedException("Not implemented");
         }
 
+        public static void CopyTo<T>(this Value value, Variable variable, List<Sequence<T>> data)
+        {
+            var rawData = new List<List<T>>();
+            CopyTo(value, variable, rawData);
+            // Todo: optimize to avoid data copy
+            foreach (var l in rawData)
+            {
+                var seq = new Sequence<T>(variable.Shape);
+                seq.AddRange(l);
+                data.Add(seq);
+            }
+        }
+
         // The value represents a n-dimensional tensor with 2 dynamic axes: sequence and batch
         // It assumes that only the highest 2 axes are dynamic, and all the other axes are static. 
         public static void CopyTo<T>(this Value value, Variable variable, List<List<T>> data)
