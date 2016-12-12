@@ -160,7 +160,7 @@ namespace CSEvalV2Example
             // Get output as onehot vector
             // void CopyTo(List<List<uint>>)
             Variable outputVar = myFunc.Outputs.Where(variable => string.Equals(variable.Name, outputNodeName)).Single();
-            outputVal.CopyTo(outputVar, outputData);
+            outputVal.CopyTo<float>(outputVar, outputData);
             var numOfElementsInSample = vocabSize;
 
             // output the result
@@ -178,5 +178,111 @@ namespace CSEvalV2Example
                 seqNo++;
             }
         }
+
+        // 
+        // The example uses sparse input and output for evaluation
+        // The input data contains multiple sequences and each sequence contains multiple samples.
+        // Each sample is a n-dimensional tensor. For sparse input, the n-dimensional tensor needs 
+        // to be flatted into 1-dimensional vector and the index of non-zero values in the 1-dimensional vector
+        // is used as sparse input.
+        //
+        static void SparseSequence()
+        {
+            // Load the model.
+            Function myFunc = Function.LoadModel("resnet.model");
+
+            // Get the input variable from by name
+            const string inputNodeName = "features";
+            // Todo: provide a help method in Function: getVariableByName()? Or has a property variables which is dictionary of <string, Variable>
+            Variable inputVar = myFunc.Arguments.Where(variable => string.Equals(variable.Name, inputNodeName)).Single();
+
+            // Get shape data 
+            NDShape inputShape = inputVar.Shape;
+            uint imageWidth = inputShape[0];
+            uint imageHeight = inputShape[1];
+            uint imageChannels = inputShape[2];
+            uint imageSize = inputShape.TotalSize;
+
+            // Number of sequences for this batch
+            int numOfSequences = 2;
+            // Number of samples in each sequence
+            int[] numOfSamplesInSequence = { 4, 2 };
+
+            // inputData contains all inputs for the evaluation
+            // The inner List is the inputs for one sequence. Its size is inputShape.TotalSize() * numberOfSampelsInSequence
+            // The outer List is the sequences. Its size is numOfSequences; 
+            var inputBatch = new List<SequenceSparse<float>>();
+         
+            // Assuming the images to be evlauated are quite sparse so using sparse input is a better option than dense input.
+            var fileList = new List<string>() { "00000.png", "00001.png", "00002.png", "00003.png", "00004.png", "00005.png" };
+            int fileIndex = 0;
+            for (int seqIndex = 0; seqIndex < numOfSequences; seqIndex++)
+            {
+                var seq = new SequenceSparse<float>(inputShape);
+
+                // Input data for the sequence
+                var dataList = new List<float>();
+                var indexList = new List<uint>();
+                for (int sampleIndex = 0; sampleIndex < numOfSamplesInSequence[seqIndex]; sampleIndex++)
+                {
+                    Bitmap bmp = new Bitmap(Bitmap.FromFile(fileList[fileIndex++]));
+                    var resized = bmp.Resize((int)imageWidth, (int)imageHeight, true);
+                    List<float> resizedCHW = resized.ParallelExtractCHW();
+                    // For any n-dimensional tensor, it needs first to be flatted to 1-dimension.
+                    // The index in the sparse input refers to the position in the flatted 1-dimension vector.
+                    uint index = 0;
+                    foreach (var v in resizedCHW)
+                    {
+                        // Put non-zero value into data
+                        // put the index of this value into indexList
+                        if (v != 0)
+                        {
+                            dataList.Add(v);
+                            indexList.Add(index);
+                        }
+                        index++;
+                    }
+                    // Add the sample to the sequence
+                    seq.AddSample(dataList, indexList);
+                }
+                // Add this sequence to the input
+                inputBatch.Add(seq);
+            }
+
+            // Create value object from data.
+            // void Create<T>(List<SequenceSparse<T>> data, DeviceDescriptor computeDevice) 
+            Value inputValue = Value.Create<float>(inputBatch, DeviceDescriptor.CPUDevice);
+
+            // Create input map
+            var inputMap = new Dictionary<Variable, Value>();
+            inputMap.Add(inputVar, inputValue);
+
+            // Repeat the steps above for each input.
+
+            // Prepare output
+            const string outputNodeName = "out.z_output";
+            Variable outputVar = myFunc.Outputs.Where(variable => string.Equals(variable.Name, outputNodeName)).Single();
+
+            // Create ouput map. Using null as Value to indicate using system allocated memory.
+            var outputMap = new Dictionary<Variable, Value>();
+            outputMap.Add(outputVar, null);
+
+            // Evalaute
+            // Todo: test on GPUDevice()?
+            myFunc.Evaluate(inputMap, outputMap, DeviceDescriptor.CPUDevice);
+
+            // The buffer for storing output for this batch
+            var outputData = new List<SequenceSparse<float>>();
+
+            Value outputVal = outputMap[outputVar];
+            // Get output result as dense output
+            // CopyTo(Variable, List<SequenceSparse<T>> data)
+            outputVal.CopyTo(outputVar, outputData);
+
+            // Output results
+            // provide sample-based iterator
+        }
+
+
     }
 }

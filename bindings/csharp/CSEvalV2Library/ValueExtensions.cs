@@ -101,6 +101,12 @@ namespace CNTK
         }
         public static void CopyTo<T>(this Value value, Variable variable, List<Sequence<T>> data)
         {
+            // Todo: can a value only have the sequencee axis, but no batch axis??
+            if (value.Shape.SubShape(0, value.Shape.Rank - 2) != variable.Shape)
+            {
+                throw new ArgumentException("The variable and value does not have same shape.");
+            }
+
             var rawData = new List<List<T>>();
             CopyTo(value, variable, rawData);
             // Todo: optimize to avoid data copy
@@ -114,17 +120,17 @@ namespace CNTK
 
         public static void CopyTo<T>(this Value value, Variable variable, List<SequenceOneHotVector> data)
         {
+            // Todo: can a value only have the sequencee axis, but no batch axis??
+            if (value.Shape.SubShape(0, value.Shape.Rank - 2) != variable.Shape)
+            {
+                throw new ArgumentException("The variable and value does not have same shape.");
+            }
+
             if (variable.Shape.Rank > 1)
             {
                 throw new System.ArgumentException("The OneHot vector requires the variable has only 1 dimension.");
             }
 
-            // Todo: can a value only have the sequencee axis, but no batch axis??
-            if (value.Shape.SubShape(0, value.Shape.Rank-2) != variable.Shape)
-            {
-                 throw new ArgumentException("The variable and value does not have same shape.");
-            }
-            
             var vocabSize = variable.Shape[0];
             var rawData = new List<List<uint>>();
             CopyTo(value, variable, rawData);
@@ -136,5 +142,16 @@ namespace CNTK
                 data.Add(seq);
             }
         }
+
+        public static void CopyTo<T>(this Value value, Variable variable, List<SequenceSparse<T>> data)
+        {
+            // Todo: can a value only have the sequencee axis, but no batch axis??
+            if (value.Shape.SubShape(0, value.Shape.Rank - 2) != variable.Shape)
+            {
+                throw new ArgumentException("The variable and value does not have same shape.");
+            }
+
+            throw new NotImplementedException("Not implemented yet.");
+         }
     }
 }

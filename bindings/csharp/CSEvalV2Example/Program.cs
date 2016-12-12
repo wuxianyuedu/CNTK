@@ -247,7 +247,7 @@ namespace CSEvalV2Example
             var indexOfSequences = new List<List<uint>>();
             var nnzCountOfSequences = new List<List<uint>>();
             // Assuming the images to be evlauated are quite sparse so using sparse input is a better option than dense input.
-            var fileList = new List<string>() { "zebra.jpg", "tiger.jpg", "deer.jpg", "pig.jpg", "buidling.jpg", "garden.jpg" };
+            var fileList = new List<string>() { "00000.png", "00001.png", "00002.png", "00003.png", "00004.png", "00005.png" };
             int fileIndex = 0;
             for (int seqIndex = 0; seqIndex < numOfSequences; seqIndex++)
             {

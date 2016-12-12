@@ -1053,6 +1053,25 @@
         return Create<T>(vocabSize, list, computeDevice);
     }
 
+    // Create Value based on SequencesSparse
+    public static Value Create<T>(System.Collections.Generic.List<CNTK.SequenceSparse<T>> sequences, DeviceDescriptor computeDevice)
+    {
+        if (sequences.Count == 0)
+        {
+            throw new System.ArgumentException("No data is provided.");
+        }
+
+        var shape = sequences[0].Shape;
+        foreach (var seq in sequences)
+        {
+            if (seq.Shape != shape)
+            {
+                throw new System.ArgumentException(string.Format("The input has different shapes. {0} vs {1}", shape, seq.Shape));
+            }
+        }
+
+        throw new System.ArgumentException("Not implemented yet.");
+    }
 %}
 
 
