@@ -1013,6 +1013,8 @@ size_t SGD<ElemType>::TrainOneEpoch(ComputationNetworkPtr net,
         double readTime = 0;
         double computeTime = 0;
         double parameterUpdateTime = 0;
+        double aggregateTime = 0;
+        double updateModelTime = 0;
         double parameterSyncTime = 0; // perf communication time between syncs.
         if (m_perfTraceLevel > 0)
             fineGrainedPerfMeasurementTimer.Start();
@@ -1229,6 +1231,13 @@ size_t SGD<ElemType>::TrainOneEpoch(ComputationNetworkPtr net,
             }
         }
 
+        if (m_perfTraceLevel > 0)
+        {
+            fineGrainedPerfMeasurementTimer.Stop();
+            aggregateTime = fineGrainedPerfMeasurementTimer.ElapsedSeconds();
+            fineGrainedPerfMeasurementTimer.Start();
+        }
+
         // update model parameters
         if ((aggregateNumSamples > 0) && (learnRatePerSample > m_minLearnRate * 0.01))
         {
@@ -1272,6 +1281,13 @@ size_t SGD<ElemType>::TrainOneEpoch(ComputationNetworkPtr net,
 #endif
                 }
             }
+        }
+
+        if (m_perfTraceLevel > 0)
+        {
+            fineGrainedPerfMeasurementTimer.Stop();
+            updateModelTime = fineGrainedPerfMeasurementTimer.ElapsedSeconds();
+            fineGrainedPerfMeasurementTimer.Start();
         }
 
 
@@ -1329,7 +1345,7 @@ size_t SGD<ElemType>::TrainOneEpoch(ComputationNetworkPtr net,
         if (m_perfTraceLevel > 0)
         {
             PREPENDTS(stderr);
-            fprintf(stderr, "Perf trace: Worker MB size = %d, Read = %.5gs; Compute = %.5gs; Parameter update = %.5gs; Parameter sync = %.5gs; Aggregate MB size = %d\n", (int)actualMBSize, readTime, computeTime, parameterUpdateTime, parameterSyncTime, (int)aggregateNumSamples);
+            fprintf(stderr, "Perf trace: Worker MB size = %d, Read = %.5gs; Compute = %.5gs; AggregateTime = %.5gs; UpdatModelTime = %.5gs; Parameter update = %.5gs; Parameter sync = %.5gs; Aggregate MB size = %d\n", (int)actualMBSize, readTime, computeTime, aggregateTime, updateModelTime, parameterUpdateTime, parameterSyncTime, (int)aggregateNumSamples);
         }
 
         numMBsRun++;
