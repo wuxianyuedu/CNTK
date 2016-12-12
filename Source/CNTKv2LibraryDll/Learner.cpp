@@ -189,15 +189,13 @@ namespace CNTK
             LogicError("Learner parameters contain duplicates.");
         }
 
-        for (const auto& parameter : parameters)
+        if (allocateSmoothGradients)
         {
-            if (!allocateSmoothGradients)
+            for (const auto& parameter : parameters)
             {
-                continue;
+                NDArrayViewPtr view = AllocateNDArrayView(parameter, parameter.Shape());
+                m_smoothedGradientValues.emplace(parameter, view);
             }
-
-            NDArrayViewPtr view = AllocateNDArrayView(parameter, parameter.Shape());
-            m_smoothedGradientValues.insert(make_pair(parameter, view));
         }
     }
 
@@ -370,6 +368,23 @@ namespace CNTK
         }
     }
 
+    LearnerSGD::LearnerSGD(const std::vector<Parameter>& parameters, 
+                           const LearningRateSchedule& learningRateSchedule, 
+                           AdditionalLearningOptions additionalOptions,
+                           bool allocateSmoothGradients)
+                           : LearnerBase(parameters, learningRateSchedule, additionalOptions, allocateSmoothGradients)
+    {
+        if (!allocateSmoothGradients)
+        {
+            // the vanilla sgd does not need the smooth gradients per se, 
+            // insert dummy nd views instead.
+            for (const auto& parameter : parameters)
+            {
+                m_smoothedGradientValues.emplace(parameter, AllocateNDArrayView(parameter, {}));
+            }
+        }
+    }
+
     /*virtual*/ void LearnerSGD::Update(const Parameter& parameter, const NDArrayViewPtr& gradientValue, 
                                         const NDArrayViewPtr& smoothedGradientValue, size_t trainingSampleCount) const /*override*/
     {
@@ -414,7 +429,7 @@ namespace CNTK
         const auto momentum = MomentumValueForMB(trainingSampleCount);
 
         parameterMatrix->MomentumSGDUpdate(*gradientMatrix, *smoothedGradientMatrix,
-                                           learningRate, momentum, UseClassicMomentum());
+                                           learningRate, momentum, UseUnitGainMomentum());
     }
 
     /*virtual*/ void LearnerNesterov::Update(const Parameter& parameter, const NDArrayViewPtr& gradientValue, 
@@ -433,7 +448,7 @@ namespace CNTK
         const auto momentum = MomentumValueForMB(trainingSampleCount);
 
         parameterMatrix->NesterovAcceleratedMomentumSGDUpdate(*gradientMatrix, *smoothedGradientMatrix,
-                                                              learningRate, momentum, UseClassicMomentum());
+                                                              learningRate, momentum, UseUnitGainMomentum());
     }
 
     LearnerAdaGrad::LearnerAdaGrad(const std::vector<Parameter>& parameters,
@@ -455,7 +470,7 @@ namespace CNTK
             const auto shape = GetMatrixShape(parameter);
             NDArrayViewPtr view = AllocateNDArrayView(parameter, { shape[0], factor * shape[1] });
 
-            m_smoothedGradientValues.insert(make_pair(parameter, view));
+            m_smoothedGradientValues.emplace(parameter, view);
         }
     }
 
@@ -482,19 +497,19 @@ namespace CNTK
     LearnerFSAdaGrad::LearnerFSAdaGrad(const vector<Parameter>& parameters,
                                        const LearningRateSchedule& learningRateSchedule,
                                        const MomentumSchedule& momentumSchedule,
-                                       bool classicMomentum,
+                                       bool unitGain,
                                        const MomentumSchedule& varianceMomentumSchedule,
                                        AdditionalLearningOptions additionalOptions)
                                        : LearnerMomentumSGD(parameters, learningRateSchedule, momentumSchedule, 
-                                                            classicMomentum, additionalOptions, /*allocateSmoothGradients*/ false),
+                                                            unitGain, additionalOptions, /*allocateSmoothGradients*/ false),
                                        m_varianceMomentumSchedule(varianceMomentumSchedule)
     {
         for (const auto& parameter : parameters)
         {
             const auto shape = GetMatrixShape(parameter);
             NDArrayViewPtr view = AllocateNDArrayView(parameter, { shape[0], 2 * shape[1] });
-            m_smoothedGradientValues.insert(make_pair(parameter, view));
-            m_smoothedCounts.insert(make_pair(parameter, 0.0));
+            m_smoothedGradientValues.emplace(parameter, view);
+            m_smoothedCounts.emplace(parameter, 0.0);
         }
     }
 
@@ -518,7 +533,7 @@ namespace CNTK
         double& smoothedCount = m_smoothedCounts.at(parameter);
 
         smoothedGradientMatrix->FSAdagradUpdate(trainingSampleCount, *gradientMatrix, *parameterMatrix, smoothedCount, learningRate, 
-                                                s_targetAdagradAvDenom, momentum, varMomentum, UseClassicMomentum());
+                                                s_targetAdagradAvDenom, momentum, varMomentum, UseUnitGainMomentum());
     }
 
     LearnerRMSProp::LearnerRMSProp(const vector<Parameter>& parameters,
@@ -541,7 +556,7 @@ namespace CNTK
             const auto shape = GetMatrixShape(parameter);
             NDArrayViewPtr view = AllocateNDArrayView(parameter, { shape[0], factor * shape[1] });
 
-            m_smoothedGradientValues.insert(make_pair(parameter, view));
+            m_smoothedGradientValues.emplace(parameter, view);
         }
     }
 
@@ -583,25 +598,25 @@ namespace CNTK
     LearnerPtr MomentumSGDLearner(const vector<Parameter>& parameters,
                                   const LearningRateSchedule& learningRateSchedule,
                                   const MomentumSchedule& momentumSchedule,
-                                  bool classicMomentum,
+                                  bool unitGain,
                                   AdditionalLearningOptions additionalOptions /*= AdditionalLearningOptions()*/)
     {
-        return MakeSharedObject<LearnerMomentumSGD>(parameters, learningRateSchedule, momentumSchedule, classicMomentum, additionalOptions);
+        return MakeSharedObject<LearnerMomentumSGD>(parameters, learningRateSchedule, momentumSchedule, unitGain, additionalOptions);
     }
 
     LearnerPtr NesterovLearner(const vector<Parameter>& parameters,
                                const LearningRateSchedule& learningRateSchedule,
                                const MomentumSchedule& momentumSchedule,
-                               bool classicMomentum,
+                               bool unitGain,
                                AdditionalLearningOptions additionalOptions /*= AdditionalLearningOptions()*/)
     {
-        return MakeSharedObject<LearnerNesterov>(parameters, learningRateSchedule, momentumSchedule, classicMomentum, additionalOptions);
+        return MakeSharedObject<LearnerNesterov>(parameters, learningRateSchedule, momentumSchedule, unitGain, additionalOptions);
     }
 
     LearnerPtr AdamLearner(const vector<Parameter>& parameters,
                            const LearningRateSchedule& learningRateSchedule,
                            const MomentumSchedule& momentumSchedule,
-                           bool classicMomentum,
+                           bool unitGain,
                            const MomentumSchedule& varianceMomentumSchedule, /*= MomentumAsTimeConstantSchedulePerSample(2 * 3600 * 100)*/
                            bool lowMemory, /*= true*/
                            AdditionalLearningOptions additionalOptions /*= AdditionalLearningOptions()*/)
@@ -610,7 +625,7 @@ namespace CNTK
         {
             LogicError("AdamLearner: only the low-memory variant is supported at the moment.");
         }
-        return MakeSharedObject<LearnerFSAdaGrad>(parameters, learningRateSchedule, momentumSchedule, classicMomentum, varianceMomentumSchedule, additionalOptions);
+        return MakeSharedObject<LearnerFSAdaGrad>(parameters, learningRateSchedule, momentumSchedule, unitGain, varianceMomentumSchedule, additionalOptions);
     }
 
     LearnerPtr AdaGradLearner(const vector<Parameter>& parameters,

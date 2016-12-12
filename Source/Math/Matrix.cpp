@@ -1496,16 +1496,16 @@ void Matrix<ElemType>::MomentumSGDUpdate(Matrix<ElemType>& gradients,
                                          Matrix<ElemType>& smoothedGradients,
                                          double learnRatePerSample,
                                          double momentum,
-                                         bool classicMomentum)
+                                         bool unitGainMomentum)
 {
-    if (classicMomentum)
+    if (unitGainMomentum)
+    {
+        smoothedGradients.NormalGrad(gradients, *this, ElemType(learnRatePerSample), ElemType(momentum), false);
+    }
+    else // classic momentum
     {
         ScaleAndAdd(ElemType(-learnRatePerSample), gradients, ElemType(momentum), smoothedGradients);
         (*this) += smoothedGradients;
-    }
-    else // use unit-gain momentum
-    {
-        smoothedGradients.NormalGrad(gradients, *this, ElemType(learnRatePerSample), ElemType(momentum), false);
     }
 }
 
@@ -1514,17 +1514,17 @@ void Matrix<ElemType>::NesterovAcceleratedMomentumSGDUpdate(Matrix<ElemType>& gr
                                                             Matrix<ElemType>& smoothedGradients,
                                                             double learnRatePerSample,
                                                             double momentum,
-                                                            bool classicMomentum)
+                                                            bool unitGainMomentum)
 {
-    if (classicMomentum)
+    if (unitGainMomentum)
+    {
+        smoothedGradients.NormalGrad(gradients, *this, ElemType(learnRatePerSample), ElemType(momentum), true);
+    }
+    else // classic momentum
     {
         ScaleAndAdd(ElemType(-momentum), smoothedGradients, *this);
         ScaleAndAdd(ElemType(-learnRatePerSample), gradients, ElemType(momentum), smoothedGradients);
         ScaleAndAdd(ElemType(1 + momentum), smoothedGradients, *this);
-    }
-    else // use unit-gain momentum
-    {
-        smoothedGradients.NormalGrad(gradients, *this, ElemType(learnRatePerSample), ElemType(momentum), true);
     }
 }
 
@@ -1619,7 +1619,7 @@ template <class ElemType>
 void Matrix<ElemType>::FSAdagradUpdate(size_t mbSize,
                                        Matrix<ElemType>& gradients, Matrix<ElemType>& functionValues, double& smoothedCount,
                                        const double learnRatePerSample, const double targetAdagradAvDenom,
-                                       const double meanMomentum, const double varMomentum)
+                                       const double meanMomentum, const double varMomentum, bool unitGainMomentum)
 {
     // keep track on how many samples have been accumulated into the g^2 accumulator
     smoothedCount = varMomentum * smoothedCount + (1.0 - varMomentum) * mbSize;
@@ -1630,8 +1630,18 @@ void Matrix<ElemType>::FSAdagradUpdate(size_t mbSize,
     //  - sqrt(1/#samples accumulated) to turn the sqr sum into an average
     let targetAdagradAvDenom_x_sqrtAdagradSqrFrames = (ElemType)(targetAdagradAvDenom * sqrt(smoothedCount));
     DISPATCH_MATRIX_ON_FLAG(&gradients, &gradients,
-        { m_CPUMatrix->FSAdagrad(*gradients.m_CPUMatrix, *functionValues.m_CPUMatrix, (ElemType)learnRatePerSample, (ElemType)meanMomentum, (ElemType)varMomentum, targetAdagradAvDenom_x_sqrtAdagradSqrFrames); SetDataLocation(CPU); },
-        { m_GPUMatrix->FSAdagrad(*gradients.m_GPUMatrix, *functionValues.m_GPUMatrix, (ElemType)learnRatePerSample, (ElemType)meanMomentum, (ElemType)varMomentum, targetAdagradAvDenom_x_sqrtAdagradSqrFrames); SetDataLocation(GPU); },
+        { 
+            m_CPUMatrix->FSAdagrad(*gradients.m_CPUMatrix, *functionValues.m_CPUMatrix, 
+                                   (ElemType)learnRatePerSample, (ElemType)meanMomentum, (ElemType)varMomentum, 
+                                   targetAdagradAvDenom_x_sqrtAdagradSqrFrames, unitGainMomentum); 
+            SetDataLocation(CPU); 
+        },
+        {
+            m_GPUMatrix->FSAdagrad(*gradients.m_GPUMatrix, *functionValues.m_GPUMatrix, 
+                                   (ElemType)learnRatePerSample, (ElemType)meanMomentum, (ElemType)varMomentum, 
+                                   targetAdagradAvDenom_x_sqrtAdagradSqrFrames, unitGainMomentum); 
+            SetDataLocation(GPU); 
+        },
         { NOT_IMPLEMENTED; },
         { NOT_IMPLEMENTED; });
     // Note: Since both 'this' and gradients are changed, we must call SetDataLocation() on 'this' as well.

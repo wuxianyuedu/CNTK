@@ -1204,8 +1204,10 @@ void CPUMatrix<ElemType>::FSAdagrad(CPUMatrix<ElemType>& gradients,
                                     ElemType momentum,
                                     ElemType adaWeight,
                                     ElemType adaMul,
-                                    bool classicMomentum)
+                                    bool unitGainMomentum)
 {
+    auto unitGainFactor = unitGainMomentum ? (1.0 - momentum) : 1.0;
+
     size_t numColsNeeded = 2 * gradients.GetNumCols();
 
     if (IsEmpty() || (GetNumCols() < numColsNeeded))
@@ -1238,30 +1240,14 @@ void CPUMatrix<ElemType>::FSAdagrad(CPUMatrix<ElemType>& gradients,
             g *= w;
         }
 
-        if (classicMomentum)
+        if (momentum > 0.0f)
         {
-            if (momentum > 0.0f)
-            {
-                g = momentum * smoothMom[i] - learnRatePerSample * g;
-                smoothMom[i] = g;
-            }
-            else
-            {
-                g *= -learnRatePerSample;
-            }
-        }
-        else
-        {
-            if (momentum > 0.0f)
-            {
-                g = momentum * smoothMom[i] + (1.0f - momentum) * g;
-                smoothMom[i] = g;
-            }
-
-            g *= -learnRatePerSample;
+            g = momentum * smoothMom[i] + unitGainFactor * g;
+            smoothMom[i] = g;
         }
 
-        val[i] += g;
+        g *= learnRatePerSample;
+        val[i] -= g;
     }
 }
 

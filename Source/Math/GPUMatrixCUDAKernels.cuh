@@ -1416,8 +1416,10 @@ __global__ void _adagrad4BlockSparse(
 
 template <class ElemType>
 __global__ void _fsadagrad(CUDA_LONG size, ElemType* grad, ElemType* smoothAda, ElemType* smoothMom, ElemType* val,
-                           ElemType lr, ElemType mom, ElemType adaWeight, ElemType adaMul, bool classicMomentum)
+                           ElemType lr, ElemType mom, ElemType adaWeight, ElemType adaMul, bool unitGainMomentum)
 {
+    auto unitGainFactor = unitGainMomentum ? (1.0 - mom) : 1.0;
+
     CUDA_LONG idx = blockIdx.x * blockDim.x + threadIdx.x;
     CUDA_LONG stride = blockDim.x * gridDim.x;
     for (; idx < size; idx += stride)
@@ -1442,30 +1444,14 @@ __global__ void _fsadagrad(CUDA_LONG size, ElemType* grad, ElemType* smoothAda, 
             g *= w;
         }
 
-        if (classicMomentum)
+        if (mom > 0.0f)
         {
-            if (mom > 0.0f)
-            {
-                g = mom * smoothMom[idx] - lr * g;
-                smoothMom[idx] = g;
-            }
-            else
-            {
-                g *= -lr;
-            }
-        }
-        else
-        {
-            if (mom > 0.0f)
-            {
-                g = mom * smoothMom[idx] + (1.0f - mom) * g;
-                smoothMom[idx] = g;
-            }
-
-            g *= -lr;
+            g = mom * smoothMom[idx] + (unitGainFactor) * g;
+            smoothMom[idx] = g;
         }
 
-        val[idx] += g;
+        g *= lr;
+        val[idx] -= g;
     }
 }
 

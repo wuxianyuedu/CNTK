@@ -108,15 +108,13 @@ namespace CNTK
     };
 
     // Vanilla gradient descent optimization algorithm.
-    class LearnerSGD : public LearnerBase
+    class LearnerSGD final : public LearnerBase
     {
     public:
-        LearnerSGD(const std::vector<Parameter>& parameters, 
-                   const LearningRateSchedule& learningRateSchedule, 
+        LearnerSGD(const std::vector<Parameter>& parameters,
+                   const LearningRateSchedule& learningRateSchedule,
                    AdditionalLearningOptions additionalOptions,
-                   bool allocateSmoothGradients = false)
-                   : LearnerBase(parameters, learningRateSchedule, additionalOptions, allocateSmoothGradients)
-        {}
+                   bool allocateSmoothGradients = false);
 
     protected:
 
@@ -127,18 +125,18 @@ namespace CNTK
     };
 
     // SGD optimization with momentum. 
-    class LearnerMomentumSGD : public LearnerSGD
+    class LearnerMomentumSGD : public LearnerBase
     {
     public:
         LearnerMomentumSGD(const std::vector<Parameter>& parameters,
                            const LearningRateSchedule& learningRateSchedule,
                            const MomentumSchedule& momentumSchedule,
-                           bool classicMomentum,
+                           bool unitGain,
                            AdditionalLearningOptions additionalOptions,
                            bool allocateSmoothGradients = true)
-                           : LearnerSGD(parameters, learningRateSchedule, additionalOptions, allocateSmoothGradients),
+                           : LearnerBase(parameters, learningRateSchedule, additionalOptions, allocateSmoothGradients),
                            m_momentumSchedule(momentumSchedule), 
-                           m_classicMomentum(classicMomentum)
+                           m_unitGain(unitGain)
         { }
 
         // returns current per-minibatch momentum value.
@@ -158,14 +156,14 @@ namespace CNTK
 
         // Return true if the update should use classic momentum and 
         // false if the unit-gain momentum should be used instead.
-        bool UseClassicMomentum() const
+        bool UseUnitGainMomentum() const
         {
-            return m_classicMomentum;
+            return m_unitGain;
         }
 
     private:
         MomentumSchedule m_momentumSchedule;
-        bool m_classicMomentum;
+        bool m_unitGain;
     };
 
     // Nesterov's accelerated SGDLearnerBase descent. 
@@ -176,9 +174,9 @@ namespace CNTK
         LearnerNesterov(const std::vector<Parameter>& parameters,
                         const LearningRateSchedule& learningRateSchedule,
                         const MomentumSchedule& momentumSchedule,
-                        bool classicMomentum,
+                        bool unitGain,
                         AdditionalLearningOptions additionalOptions)
-                        : LearnerMomentumSGD(parameters, learningRateSchedule, momentumSchedule, classicMomentum, additionalOptions, /*allocateSmoothGradients*/ true)
+                        : LearnerMomentumSGD(parameters, learningRateSchedule, momentumSchedule, unitGain, additionalOptions, /*allocateSmoothGradients*/ true)
         {}
 
     protected:
@@ -212,7 +210,7 @@ namespace CNTK
         LearnerFSAdaGrad(const std::vector<Parameter>& parameters,
                          const LearningRateSchedule& learningRateSchedule,
                          const MomentumSchedule& momentumSchedule,
-                         bool classicMomentum,
+                         bool unitGain,
                          const MomentumSchedule& varianceMomentumSchedule,
                          AdditionalLearningOptions additionalOptions);
 

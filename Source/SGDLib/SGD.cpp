@@ -2208,17 +2208,16 @@ void SGD<ElemType>::UpdateWeights(Matrix<ElemType>& functionValues, Matrix<ElemT
 
     if (adpType == GradientsUpdateType::None)
     {
-        if (momentum == 0.0 && !useNesterovMomentum)
-        {
-            functionValues.SGDUpdate(gradientValues, learnRatePerSample);
-        } 
-        else if (!useNesterovMomentum)
+        // even if momentum is 0.0, still need to call a momentum-based update to store 
+        // [learning rate * current gradient values] in the smoothed gradients, in case
+        // the momentum value for the next epoch is non-zero.
+        if (!useNesterovMomentum)
         {
             functionValues.MomentumSGDUpdate(gradientValues, smoothedGradientValues, learnRatePerSample, momentum);
         }
         else
         {
-            functionValues.NesterovAcceleratedMomentumSGDUpdate(gradients, learnRatePerSample);
+            functionValues.NesterovAcceleratedMomentumSGDUpdate(gradientValues, smoothedGradientValues, learnRatePerSample, momentum);
         }
     }
     else if (adpType == GradientsUpdateType::AdaGrad ||
