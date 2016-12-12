@@ -9,28 +9,22 @@ using Microsoft.MSR.CNTK.Extensibility.Managed.CSEvalClient;
 
 namespace CSEvalV2Example
 {
+    //
+    // This example shows how to use the Sequence class to prepare input and output.
+    //
     public class SequenceClassesSample
     {
         // The example shows how to use Sequence class.
         public static void DenseSequence()
         {
-            const string outputNodeName = "Plus2060_output";
-
             // Load the model.
             Function modelFunc = Function.LoadModel("z.model");
 
-            // Todo: how to get a variable in the intermeidate layer by name?
-            Variable outputVar = modelFunc.Outputs.Where(variable => string.Equals(variable.Name, outputNodeName)).Single();
-
-            // Set desired output variables and get required inputVariables;
-            Function evalFunc = Function.Combine(new Variable[] { outputVar });
-
-            // Only signle input variable
-            Variable inputVar = evalFunc.Arguments.Single();
+            Variable outputVar = modelFunc.Output;
+            Variable inputVar = modelFunc.Arguments.Single();
 
             // Get shape data for the input variable
             NDShape inputShape = inputVar.Shape;
-            // Todo: add property to Shape
             uint imageWidth = inputShape[0];
             uint imageHeight = inputShape[1];
             uint imageChannels = inputShape[2];
@@ -42,9 +36,6 @@ namespace CSEvalV2Example
             int[] numOfSamplesInSequence = { 3, 3 };
 
             // inputData contains mutliple sequences. Each sequence has multiple samples.
-            // Each sample has the same tensor shape.
-            // The outer List is the sequences. Its size is numOfSequences.
-            // The inner List is the inputs for one sequence. Its size is inputShape.TotalSize * numberOfSampelsInSequence
             var inputBatch = new List<Sequence<float>>();
             var fileList = new List<string>() { "00000.png", "00001.png", "00002.png", "00003.png", "00004.png", "00005.png" };
             int fileIndex = 0;
@@ -77,13 +68,12 @@ namespace CSEvalV2Example
             // Todo: test on GPUDevice()?
             // Use Variables in input and output maps.
             // It is also possible to use variable name in input and output maps.
-            evalFunc.Evaluate(inputMap, outputMap, DeviceDescriptor.CPUDevice);
+            modelFunc.Evaluate(inputMap, outputMap, DeviceDescriptor.CPUDevice);
 
-            // The buffer for storing output for this batch
             var outputData = new List<Sequence<float>>();
             Value outputVal = outputMap[outputVar];
             // Get output result as dense output
-            // void CopyTo(List<List<T>>
+            // void CopyTo(Variable, List<Sequence<T>>)
             outputVal.CopyTo(outputVar, outputData);
 
             // Output results
@@ -91,7 +81,7 @@ namespace CSEvalV2Example
         }
 
         // 
-        // The example uses OneHot vector as input and output for evaluation
+        // The example uses the SequenceOneHot class as input and output for evaluation
         // The input data contains multiple sequences and each sequence contains multiple samples.
         // There is only one non-zero value in each sample, so the sample can be represented by the index of this non-zero value
         //
@@ -99,12 +89,14 @@ namespace CSEvalV2Example
         {
             var vocabToIndex = new Dictionary<string, uint>();
             var indexToVocab = new Dictionary<uint, string>();
-            uint vocabSize = 10000;
 
             Function myFunc = Function.LoadModel("atis.model");
 
             // Get input variable 
             const string inputNodeName = "features";
+            var inputVar = myFunc.Arguments.Where(variable => string.Equals(variable.Name, inputNodeName)).Single();
+
+            uint vocabSize = inputVar.Shape.TotalSize;
 
             // The input data. 
             // Each sample is represented by a onehot vector, so the index of the non-zero value of each sample is saved in the inner list
@@ -117,7 +109,6 @@ namespace CSEvalV2Example
 
             // The number of sequences in this batch
             int numOfSequences = inputSentences.Count;
-
             for (int seqIndex = 0; seqIndex < numOfSequences; seqIndex++)
             {
                 // the input for one sequence 
@@ -136,30 +127,30 @@ namespace CSEvalV2Example
             }
 
             // Create the Value representing the data.
-            // void CreateValue<T>(uint vocabularySize, List<List<uint> oneHotIndexes, DeviceDescriptor computeDevice) 
+            // void CreateValue<T>(List<SequenceOneHotVector>, DeviceDescriptor computeDevice) 
             Value inputValue = Value.Create<float>(inputBatch, DeviceDescriptor.CPUDevice);
 
             // Create input map
-            var inputMap = new Dictionary<string, Value>();
-            inputMap.Add(inputNodeName, inputValue);
+            var inputMap = new Dictionary<Variable, Value>();
+            inputMap.Add(inputVar, inputValue);
 
             // Prepare output
             const string outputNodeName = "out.z_output";
+            Variable outputVar = myFunc.Outputs.Where(variable => string.Equals(variable.Name, outputNodeName)).Single();
 
             // Create ouput map. Using null as Value to indicate using system allocated memory.
-            var outputMap = new Dictionary<string, Value>();
-            outputMap.Add(outputNodeName, null);
+            var outputMap = new Dictionary<Variable, Value>();
+            outputMap.Add(outputVar, null);
 
             // Evalaute
             // Todo: test on GPUDevice()?
             myFunc.Evaluate(inputMap, outputMap, DeviceDescriptor.CPUDevice);
 
             var outputData = new List<SequenceOneHotVector>();
-            Value outputVal = outputMap[outputNodeName];
+            Value outputVal = outputMap[outputVar];
 
             // Get output as onehot vector
-            // void CopyTo(List<List<uint>>)
-            Variable outputVar = myFunc.Outputs.Where(variable => string.Equals(variable.Name, outputNodeName)).Single();
+            // void CopyTo(List<SequenceOneHotVector>)
             outputVal.CopyTo<float>(outputVar, outputData);
             var numOfElementsInSample = vocabSize;
 
@@ -180,7 +171,7 @@ namespace CSEvalV2Example
         }
 
         // 
-        // The example uses sparse input and output for evaluation
+        // The example uses SequenceSparse to prepare input and output data for evaluation
         // The input data contains multiple sequences and each sequence contains multiple samples.
         // Each sample is a n-dimensional tensor. For sparse input, the n-dimensional tensor needs 
         // to be flatted into 1-dimensional vector and the index of non-zero values in the 1-dimensional vector
@@ -208,9 +199,7 @@ namespace CSEvalV2Example
             // Number of samples in each sequence
             int[] numOfSamplesInSequence = { 4, 2 };
 
-            // inputData contains all inputs for the evaluation
-            // The inner List is the inputs for one sequence. Its size is inputShape.TotalSize() * numberOfSampelsInSequence
-            // The outer List is the sequences. Its size is numOfSequences; 
+            // The input batch having sparse input.
             var inputBatch = new List<SequenceSparse<float>>();
          
             // Assuming the images to be evlauated are quite sparse so using sparse input is a better option than dense input.
@@ -282,7 +271,5 @@ namespace CSEvalV2Example
             // Output results
             // provide sample-based iterator
         }
-
-
     }
 }

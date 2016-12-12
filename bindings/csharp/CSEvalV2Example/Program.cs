@@ -18,11 +18,18 @@ namespace CSEvalV2Example
 {
     public class Program
     {
-        // The example shows how to evaluate a model in most common cases.
+        // 
+        // The example shows 
+        // - how to load model.
+        // - how to set desired ouput variables for evaluation and retrieve required input variables.
+        // - how to prepear input data (a batch with varaible sequences) in dense format, using List<List<T>>.
+        // - how to evaluate a model
+        // - how to get out output data in dense format, using List<List<T>>.
+        //
         static void DenseExample()
         {
             const string outputNodeName = "Plus2060_output";
-            // The model has empty input node name. Fortunatelly there is only one input node for the model.
+            // The model has an empty input node name. Fortunatelly there is only one input node for the model.
             const string inputNodeName = "";
 
             // Load the model.
@@ -39,7 +46,6 @@ namespace CSEvalV2Example
 
             // Get shape data for the input variable
             NDShape inputShape = inputVar.Shape;
-            // Todo: add property to Shape
             uint imageWidth = inputShape[0];
             uint imageHeight = inputShape[1];
             uint imageChannels = inputShape[2];
@@ -52,8 +58,8 @@ namespace CSEvalV2Example
 
             // inputData contains mutliple sequences. Each sequence has multiple samples.
             // Each sample has the same tensor shape.
-            // The outer List is the sequences. Its size is numOfSequences.
-            // The inner List is the inputs for one sequence. Its size is inputShape.TotalSize * numberOfSampelsInSequence
+            // The outer List is the sequences. Its size is the number of qequences.
+            // The inner List is the samples of one single sequence. Its size is inputShape.TotalSize * numberOfSampelsInSequence
             var inputData = new List<List<float>>();
             var fileList = new List<string>() { "00000.png", "00001.png", "00002.png", "00003.png", "00004.png", "00005.png" };
             int fileIndex = 0;
@@ -75,7 +81,9 @@ namespace CSEvalV2Example
 
             // Create input map
             var inputMap = new Dictionary<Variable, Value>();
-            // void Create<T>(Shape shape, List<List<T>> data, DeviceDescriptor computeDevice)
+
+            // Create the Value from input data and add to the input map.
+            // void Create<T>(NDShape shape, List<List<T>> data, DeviceDescriptor computeDevice)
             inputMap.Add(inputVar, Value.Create(inputVar.Shape, inputData, DeviceDescriptor.CPUDevice));
 
             // Create ouput map. Using null as Value to indicate using system allocated memory.
@@ -92,10 +100,11 @@ namespace CSEvalV2Example
             var outputData = new List<List<float>>();
             Value outputVal = outputMap[outputVar];
             // Get output result as dense output
-            // void CopyTo(List<List<T>>
+            // void CopyTo(Variable, List<List<T>>
             outputVal.CopyTo(outputVar, outputData);
 
             // Output results
+            // Todo: add sample based iterator
             var numOfElementsInSample = outputVar.Shape.TotalSize;
             uint seqNo = 0;
             foreach (var seq in outputData)
@@ -123,20 +132,24 @@ namespace CSEvalV2Example
         }
 
         // 
-        // The example uses OneHot vector as input and output for evaluation
-        // The input data contains multiple sequences and each sequence contains multiple samples.
-        // There is only one non-zero value in each sample, so the sample can be represented by the index of this non-zero value
+        // The example shows 
+        // - how to use OneHot vector as input and output for evaluation
+        //   The input data contains multiple sequences and each sequence contains multiple samples.
+        //   There is only one non-zero value in each sample, so the sample can be represented by the index of this non-zero value
+        // - use variable name, instead of Variable, for as parameters for evaluate.
         //
         static void OneHotExample()
         {
             var vocabToIndex = new Dictionary<string, uint>();
             var indexToVocab = new Dictionary<uint, string>();
-            uint vocabSize = 10000;
 
             Function myFunc = Function.LoadModel("atis.model");
 
             // Get input variable 
             const string inputNodeName = "features";
+            var inputVar = myFunc.Arguments.Where(variable => string.Equals(variable.Name, inputNodeName)).Single();
+
+            uint vocabSize = inputVar.Shape.TotalSize;
 
             // The input data. 
             // Each sample is represented by a onehot vector, so the index of the non-zero value of each sample is saved in the inner list
@@ -191,7 +204,7 @@ namespace CSEvalV2Example
             Value outputVal = outputMap[outputNodeName];
 
             // Get output as onehot vector
-            // void CopyTo(List<List<uint>>)
+            // void CopyTo(Variable, List<List<uint>>)
             outputVal.CopyTo(outputVar, outputData);
             var numOfElementsInSample = vocabSize;
 
@@ -344,9 +357,6 @@ namespace CSEvalV2Example
             }
         }
 
-        
-
-
         static void Main(string[] args)
         {
             Console.WriteLine("======== Evaluate model using C# ========");
@@ -366,6 +376,5 @@ namespace CSEvalV2Example
 
             Console.WriteLine("======== Evaluation completes. ========");
         }
-
     }
 }
