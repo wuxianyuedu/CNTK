@@ -1502,8 +1502,9 @@ def optimized_rnnstack(operand, weights, hidden_size, num_layers,
         >>> x = C.input_variable(shape=(4,))
         >>> s = np.reshape(np.arange(20.0, dtype=np.float32), (5,4))
         >>> f = C.optimized_rnnstack(x, W, 8, 2)
-        >>> f.eval({x:s}).shape
-        (1, 5, 8)
+        >>> shape = f.eval({x:s}).shape
+        >>> [int(x) for x in list(shape)]
+        [1, 5, 8]
 
     Returns:
         :class:`~cntk.ops.functions.Function`
