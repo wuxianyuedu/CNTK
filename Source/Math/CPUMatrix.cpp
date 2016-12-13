@@ -1206,7 +1206,7 @@ void CPUMatrix<ElemType>::FSAdagrad(CPUMatrix<ElemType>& gradients,
                                     ElemType adaMul,
                                     bool unitGainMomentum)
 {
-    auto unitGainFactor = unitGainMomentum ? (1.0 - momentum) : 1.0;
+    auto unitGainFactor = ElemType(unitGainMomentum ? (1.0 - momentum) : 1.0);
 
     size_t numColsNeeded = 2 * gradients.GetNumCols();
 

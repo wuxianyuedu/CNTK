@@ -1410,7 +1410,7 @@ GPUSparseMatrix<ElemType>& GPUSparseMatrix<ElemType>::InplaceSoftThreshold(const
 
 // normal update for smoothed gradients c and current gradients (this)
 template <class ElemType>
-void GPUSparseMatrix<ElemType>::NormalGrad(GPUMatrix<ElemType>& c, const ElemType momentum)
+void GPUSparseMatrix<ElemType>::NormalGrad(GPUMatrix<ElemType>& c, const ElemType momentum, bool unitGainMomentum)
 {
     VerifyWritable(__FUNCTION__);
 
@@ -1435,7 +1435,8 @@ void GPUSparseMatrix<ElemType>::NormalGrad(GPUMatrix<ElemType>& c, const ElemTyp
             GetBlockSize(),
             Data(),
             BlockId2ColOrRow(),
-            c.Data());
+            c.Data(),
+            unitGainMomentum);
     }
     else
     {

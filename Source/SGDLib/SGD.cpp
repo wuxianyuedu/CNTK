@@ -2213,11 +2213,13 @@ void SGD<ElemType>::UpdateWeights(Matrix<ElemType>& functionValues, Matrix<ElemT
         // the momentum value for the next epoch is non-zero.
         if (!useNesterovMomentum)
         {
-            functionValues.MomentumSGDUpdate(gradientValues, smoothedGradientValues, learnRatePerSample, momentum);
+            functionValues.MomentumSGDUpdate(gradientValues, smoothedGradientValues, 
+                                             ElemType(learnRatePerSample), ElemType(momentum));
         }
         else
         {
-            functionValues.NesterovAcceleratedMomentumSGDUpdate(gradientValues, smoothedGradientValues, learnRatePerSample, momentum);
+            functionValues.NesterovAcceleratedMomentumSGDUpdate(gradientValues, smoothedGradientValues, 
+                                                                ElemType(learnRatePerSample), ElemType(momentum));
         }
     }
     else if (adpType == GradientsUpdateType::AdaGrad ||

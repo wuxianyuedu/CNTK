@@ -1486,112 +1486,108 @@ void Matrix<ElemType>::SetUniformRandomMask(const ElemType maskRate, const ElemT
 
 // Vanilla SGD update
 template <class ElemType>
-void Matrix<ElemType>::SGDUpdate(Matrix<ElemType>& gradients, double learnRatePerSample)
+void Matrix<ElemType>::SGDUpdate(Matrix<ElemType>& gradients, ElemType learnRatePerSample)
 {
-    ScaleAndAdd(ElemType(-learnRatePerSample), gradients, *this);
+    DecideAndMoveToRightDevice(gradients, *this);
+
+    DISPATCH_MATRIX_ON_FLAG(&gradients, nullptr,
+    { 
+        ScaleAndAdd(ElemType(-learnRatePerSample), gradients, *this);
+    },
+    { 
+        // BUGBUG: cannot call ScaleAndAdd(ElemType(-learnRatePerSample), gradients, *this) here,
+        // it produces different results from the scale and add below.
+        Scale(ElemType(learnRatePerSample), gradients);
+        *this -= gradients;
+    },
+    { 
+        ScaleAndAdd(ElemType(-learnRatePerSample), gradients, *this);
+    },
+    { 
+        ScaleAndAdd(ElemType(-learnRatePerSample), gradients, *this);
+    });
+    
 }
 
 template <class ElemType>
 void Matrix<ElemType>::MomentumSGDUpdate(Matrix<ElemType>& gradients,
                                          Matrix<ElemType>& smoothedGradients,
-                                         double learnRatePerSample,
-                                         double momentum,
+                                         ElemType learnRatePerSample,
+                                         ElemType momentum,
                                          bool unitGainMomentum)
 {
-    if (unitGainMomentum)
-    {
-        smoothedGradients.NormalGrad(gradients, *this, ElemType(learnRatePerSample), ElemType(momentum), false);
-    }
-    else // classic momentum
-    {
-        ScaleAndAdd(ElemType(-learnRatePerSample), gradients, ElemType(momentum), smoothedGradients);
-        (*this) += smoothedGradients;
-    }
+    DecideAndMoveToRightDevice(smoothedGradients, gradients, *this);
+
+    const auto unitGainFactor = ElemType(unitGainMomentum ? (1.0 - momentum) : 1.0);
+
+    DISPATCH_MATRIX_ON_FLAG(&gradients, nullptr,
+        { 
+            ScaleAndAdd(unitGainFactor * learnRatePerSample, gradients, momentum, smoothedGradients);
+            *this -= smoothedGradients;
+        },
+        { 
+            ScaleAndAdd(unitGainFactor * learnRatePerSample, gradients, momentum, smoothedGradients);
+            *this -= smoothedGradients;
+        },
+        { 
+            if (momentum != 0)
+            {
+                gradients.m_CPUSparseMatrix->NormalGrad(*smoothedGradients.m_CPUMatrix, momentum, unitGainMomentum);
+            }
+            ScaleAndAdd(-learnRatePerSample, gradients, *this);
+        },
+        { 
+            if (momentum != 0)
+            {
+                gradients.m_GPUSparseMatrix->NormalGrad(*smoothedGradients.m_GPUMatrix, momentum, unitGainMomentum);
+            }
+            ScaleAndAdd(-learnRatePerSample, gradients, *this);
+        });
 }
 
 template <class ElemType>
 void Matrix<ElemType>::NesterovAcceleratedMomentumSGDUpdate(Matrix<ElemType>& gradients,
                                                             Matrix<ElemType>& smoothedGradients,
-                                                            double learnRatePerSample,
-                                                            double momentum,
+                                                            ElemType learnRatePerSample,
+                                                            ElemType momentum,
                                                             bool unitGainMomentum)
 {
-    if (unitGainMomentum)
-    {
-        smoothedGradients.NormalGrad(gradients, *this, ElemType(learnRatePerSample), ElemType(momentum), true);
-    }
-    else // classic momentum
-    {
-        ScaleAndAdd(ElemType(-momentum), smoothedGradients, *this);
-        ScaleAndAdd(ElemType(-learnRatePerSample), gradients, ElemType(momentum), smoothedGradients);
-        ScaleAndAdd(ElemType(1 + momentum), smoothedGradients, *this);
-    }
-}
+    DecideAndMoveToRightDevice(smoothedGradients, gradients, *this);
 
-template <class ElemType>
-void Matrix<ElemType>::NormalGrad(Matrix<ElemType>& gradients,
-                                  Matrix<ElemType>& functionValues,
-                                  const ElemType learnRatePerSample,
-                                  const ElemType momentum,
-                                  const bool useNesterovMomentum)
-{
-    DecideAndMoveToRightDevice(*this, gradients, functionValues);
+    const auto unitGainFactor = ElemType(unitGainMomentum ? (1.0 - momentum) : 1.0);
 
-    if (!useNesterovMomentum)
-    {
-        DISPATCH_MATRIX_ON_FLAG(&gradients, nullptr,
-            { 
-                ScaleAndAdd((1 - momentum) * learnRatePerSample, gradients, momentum, *this);
-                functionValues -= *this;
-            },
-            { 
-                ScaleAndAdd((1 - momentum) * learnRatePerSample, gradients, momentum, *this);
-                functionValues -= *this;
-            },
-            { 
-                if (momentum != 0) gradients.m_CPUSparseMatrix->NormalGrad(*m_CPUMatrix, momentum);
-                ScaleAndAdd(-learnRatePerSample, gradients, functionValues);
-            },
-            { 
-                if (momentum != 0) gradients.m_GPUSparseMatrix->NormalGrad(*m_GPUMatrix, momentum);
-                ScaleAndAdd(-learnRatePerSample, gradients, functionValues);
-            });
-    }
-    else
-    {
-        DISPATCH_MATRIX_ON_FLAG(&gradients, nullptr,
-            { /* CPU dense */
-                ScaleAndAdd((1 - momentum) * learnRatePerSample, gradients, momentum, *this);
-                ScaleAndAdd(-momentum, *this, functionValues);
-                ScaleAndAdd(-(1 - momentum) * learnRatePerSample, gradients, functionValues);
-                // w_t = w_{t-1} - momentum * v_ {t-1} - (1-momentum)*learnRatePerSampele*gardient,
-            },
-            { /* GPU dense */
-                ScaleAndAdd((1 - momentum) * learnRatePerSample, gradients, momentum, *this);
-                ScaleAndAdd(-momentum, *this, functionValues);
-                ScaleAndAdd(-(1 - momentum) * learnRatePerSample, gradients, functionValues);
-            },
-            { /* CPU sparse */
-                if (momentum != 0)
-                {
-                    Matrix<ElemType> gradientCache(gradients.GetDeviceId());
-                    gradientCache.AssignValuesOf(gradients);
-                    gradients.m_CPUSparseMatrix->NormalGrad(*m_CPUMatrix, momentum);
-                    ScaleAndAdd(-momentum, *this, functionValues);
-                    ScaleAndAdd(-(1 - momentum) * learnRatePerSample, gradientCache, functionValues);
-                }
-            },
-            { /* GPU sparse */
-                if (momentum != 0)
-                {
-                    Matrix<ElemType> gradientCache(gradients.GetDeviceId());
-                    gradientCache.AssignValuesOf(gradients);
-                    gradients.m_GPUSparseMatrix->NormalGrad(*m_GPUMatrix, momentum);
-                    ScaleAndAdd(-momentum, *this, functionValues);
-                    ScaleAndAdd(-(1 - momentum) * learnRatePerSample, gradientCache, functionValues);
-                }
-            });
-    }
+    DISPATCH_MATRIX_ON_FLAG(&gradients, nullptr,
+        { /* CPU dense */
+            ScaleAndAdd( unitGainFactor * learnRatePerSample, gradients, momentum, smoothedGradients);
+            ScaleAndAdd(-momentum,smoothedGradients, *this);
+            ScaleAndAdd(-unitGainFactor * learnRatePerSample, gradients, *this);
+            // w_t = w_{t-1} - momentum * v_ {t-1} - (1-momentum)*learnRatePerSampele*gradient,
+        },
+        { /* GPU dense */
+            ScaleAndAdd(unitGainFactor * learnRatePerSample, gradients, momentum, smoothedGradients);
+            ScaleAndAdd(-momentum, smoothedGradients, *this);
+            ScaleAndAdd(-unitGainFactor * learnRatePerSample, gradients, *this);
+        },
+        { /* CPU sparse */
+            if (momentum != 0)
+            {
+                Matrix<ElemType> gradientCache(gradients.GetDeviceId());
+                gradientCache.AssignValuesOf(gradients);
+                gradients.m_CPUSparseMatrix->NormalGrad(*smoothedGradients.m_CPUMatrix, momentum, unitGainMomentum);
+                ScaleAndAdd(-momentum, smoothedGradients, *this);
+                ScaleAndAdd(-unitGainFactor * learnRatePerSample, gradientCache, *this);
+            }
+        },
+        { /* GPU sparse */
+            if (momentum != 0)
+            {
+                Matrix<ElemType> gradientCache(gradients.GetDeviceId());
+                gradientCache.AssignValuesOf(gradients);
+                gradients.m_GPUSparseMatrix->NormalGrad(*smoothedGradients.m_GPUMatrix, momentum, unitGainMomentum);
+                ScaleAndAdd(-momentum, smoothedGradients, *this);
+                ScaleAndAdd(-unitGainFactor * learnRatePerSample, gradientCache, *this);
+            }
+        });
 }
 
 // both 'this' and gradients will be changed
@@ -4836,8 +4832,8 @@ template <class ElemType>
         Scale(alpha, a, c);
     else
     {
-        ScaleAndAdd(alpha / beta, a, c); // c1=alpha/beta * a + c
-        Scale(beta, c);                  // c/beta * beta
+        Scale(beta, c);                  // c1 = c * beta
+        ScaleAndAdd(alpha, a, c); // c=alpha * a + c1 = alpha * a + beta * c
     }
 }
 

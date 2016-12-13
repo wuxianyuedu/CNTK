@@ -398,7 +398,7 @@ namespace CNTK
         UNUSED(smoothedGradientValue);
         const auto& gradientMatrix = GetWritableMatrix<ElementType>(gradientValue);
         const auto& parameterMatrix = GetWritableMatrix<ElementType>(parameter.Value());
-        const auto learningRate = LearningRate(trainingSampleCount);
+        const auto learningRate = ElementType(LearningRate(trainingSampleCount));
 
         parameterMatrix->SGDUpdate(*gradientMatrix, learningRate);
     }
@@ -425,8 +425,8 @@ namespace CNTK
     {
         GET_WRITABLE_MATRICES;
 
-        const auto learningRate = LearningRate(trainingSampleCount);
-        const auto momentum = MomentumValueForMB(trainingSampleCount);
+        const auto learningRate = ElementType(LearningRate(trainingSampleCount));
+        const auto momentum = ElementType(MomentumValueForMB(trainingSampleCount));
 
         parameterMatrix->MomentumSGDUpdate(*gradientMatrix, *smoothedGradientMatrix,
                                            learningRate, momentum, UseUnitGainMomentum());
@@ -444,8 +444,8 @@ namespace CNTK
     {
         GET_WRITABLE_MATRICES;
 
-        const auto learningRate = LearningRate(trainingSampleCount);
-        const auto momentum = MomentumValueForMB(trainingSampleCount);
+        const auto learningRate = ElementType(LearningRate(trainingSampleCount));
+        const auto momentum = ElementType(MomentumValueForMB(trainingSampleCount));
 
         parameterMatrix->NesterovAcceleratedMomentumSGDUpdate(*gradientMatrix, *smoothedGradientMatrix,
                                                               learningRate, momentum, UseUnitGainMomentum());
