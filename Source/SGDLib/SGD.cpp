@@ -1014,7 +1014,10 @@ size_t SGD<ElemType>::TrainOneEpoch(ComputationNetworkPtr net,
         double computeTime = 0;
         double parameterUpdateTime = 0;
         double aggregateTime = 0;
-        double updateModelTime = 0;
+        double aggregatepart1 = 0;
+        double aggregatepart2 = 0;
+        double aggregatepart3 = 0;
+        double aggregatepart4 = 0;
         double parameterSyncTime = 0; // perf communication time between syncs.
         if (m_perfTraceLevel > 0)
             fineGrainedPerfMeasurementTimer.Start();
@@ -1191,10 +1194,24 @@ size_t SGD<ElemType>::TrainOneEpoch(ComputationNetworkPtr net,
                 }
             }
 
+            if (m_perfTraceLevel > 0)
+            {
+                fineGrainedPerfMeasurementTimer.Stop();
+                aggregatepart1 = fineGrainedPerfMeasurementTimer.ElapsedSeconds();
+                fineGrainedPerfMeasurementTimer.Start();
+            }
+
             // hoist the criterion into CPU space for all-reduce
             localEpochCriterion.Assign(0, numSamplesWithLabelOfNetwork);
             for (size_t i = 0; i < evaluationNodes.size(); i++)
                 localEpochEvalErrors.Assign(i, numSamplesWithLabelOfNetwork);
+
+            if (m_perfTraceLevel > 0)
+            {
+                fineGrainedPerfMeasurementTimer.Stop();
+                aggregatepart2 = fineGrainedPerfMeasurementTimer.ElapsedSeconds();
+                fineGrainedPerfMeasurementTimer.Start();
+            }
 
             // copy all values to be aggregated into the header
             m_gradHeader->numSamples = aggregateNumSamples;
@@ -1204,10 +1221,24 @@ size_t SGD<ElemType>::TrainOneEpoch(ComputationNetworkPtr net,
             for (size_t i = 0; i < evaluationNodes.size(); i++)
                 m_gradHeader->evalErrors[i] = localEpochEvalErrors.GetCriterion(i);
 
+            if (m_perfTraceLevel > 0)
+            {
+                fineGrainedPerfMeasurementTimer.Stop();
+                aggregatepart3 = fineGrainedPerfMeasurementTimer.ElapsedSeconds();
+                fineGrainedPerfMeasurementTimer.Start();
+            }
+
             // aggregate
             m_gradHeader->numEvalNode = evaluationNodes.size(); // TODO: rename numEvalNode (plural)
             bool samplesProcessed = m_distGradAgg->AggregateGradients(learnParamsGradients, m_gradHeader.get(), isFirstMinibatch);
             noMoreSamplesToProcess = !samplesProcessed;
+
+            if (m_perfTraceLevel > 0)
+            {
+                fineGrainedPerfMeasurementTimer.Stop();
+                aggregatepart4 = fineGrainedPerfMeasurementTimer.ElapsedSeconds();
+                fineGrainedPerfMeasurementTimer.Start();
+            }
 
             // read out the header--now everything is aggregated
             aggregateNumSamples          = m_gradHeader->numSamples;
@@ -1285,14 +1316,6 @@ size_t SGD<ElemType>::TrainOneEpoch(ComputationNetworkPtr net,
 
         if (m_perfTraceLevel > 0)
         {
-            fineGrainedPerfMeasurementTimer.Stop();
-            updateModelTime = fineGrainedPerfMeasurementTimer.ElapsedSeconds();
-            fineGrainedPerfMeasurementTimer.Start();
-        }
-
-
-        if (m_perfTraceLevel > 0)
-        {
             std::unique_ptr<MatrixComputeStreamEvent> mainStreamSyncEvent(MatrixComputeStreamEvent::Create(net->GetDeviceId()));
             mainStreamSyncEvent->SynchronizeEvent();
             fineGrainedPerfMeasurementTimer.Stop();
@@ -1345,7 +1368,14 @@ size_t SGD<ElemType>::TrainOneEpoch(ComputationNetworkPtr net,
         if (m_perfTraceLevel > 0)
         {
             PREPENDTS(stderr);
-            fprintf(stderr, "Perf trace: Worker MB size = %d, Read = %.5gs; Compute = %.5gs; AggregateTime = %.5gs; UpdatModelTime = %.5gs; Parameter update = %.5gs; Parameter sync = %.5gs; Aggregate MB size = %d\n", (int)actualMBSize, readTime, computeTime, aggregateTime, updateModelTime, parameterUpdateTime, parameterSyncTime, (int)aggregateNumSamples);
+            fprintf(stderr, "Perf trace: Worker MB size = %d, aggregatePart1 = %.5gs; aggregatepart2 = %.5gs; aggregatepart3 = %.5gs; aggregatepart4 = %.5gs; AggregateTime = %.5gs; Parameter update = %.5gs; \n",
+                    (int)actualMBSize,
+                    aggregatepart1,
+                    aggregatepart2,
+                    aggregatepart3,
+                    aggregatepart4,
+                    aggregateTime,
+                    parameterUpdateTime);
         }
 
         numMBsRun++;
