@@ -240,7 +240,7 @@ ifeq ("$(BUILDTYPE)","release")
   CXXFLAGS += -g -O4
   LDFLAGS += -rdynamic
   COMMON_FLAGS += -DNDEBUG -DNO_SYNC
-  CUFLAGS += -O3 -g -use_fast_math -lineinfo $(GENCODE_FLAGS)
+  CUFLAGS += -O3 -g -use_fast_math $(GENCODE_FLAGS)
 endif
 
 ifdef CNTK_CUDA_DEVICE_DEBUGINFO
@@ -450,7 +450,7 @@ $(CNTKLIBRARY_LIB): $(CNTKLIBRARY_OBJ) | $(CNTKMATH_LIB)
 	@echo $(SEPARATOR)
 	@mkdir -p $(dir $@)
 	@echo building $@ for $(ARCH) with build type $(BUILDTYPE)
-	$(CXX) $(LDFLAGS) -shared $(patsubst %,-L%, $(LIBDIR) $(LIBPATH) $(GDK_NVML_LIB_PATH)) $(patsubst %,$(RPATH)%, $(ORIGINDIR) $(LIBPATH)) -o $@ $^ $(LIBS) -l$(CNTKMATH) $(PROTOBUF_PATH)/lib/libprotobuf.a
+	$(CXX) $(LDFLAGS) -shared $(patsubst %,-L%, $(LIBDIR) $(LIBPATH) $(GDK_NVML_LIB_PATH)) $(patsubst %,$(RPATH)%, $(ORIGINDIR) $(LIBPATH)) -o $@ $^ $(LIBS) -l$(CNTKMATH) $(PROTOBUF_PATH)/lib/libprotobuf.a -fopenmp
 
 ########################################
 # CNTKLibrary tests
