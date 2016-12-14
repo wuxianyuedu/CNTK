@@ -689,7 +689,7 @@ void TestLegacyModelSaving(const DeviceDescriptor& device)
     {
         trainer.SaveCheckpoint(L"trainer.checkpoint" + std::to_wstring(i));
         Internal::SaveAsLegacyModel(classifierOutput, modelFile + std::to_wstring(i));
-        trainer.TrainMinibatch({ { features, minibatchData[featureStreamInfo].m_data }, { labels, minibatchData[labelStreamInfo].m_data } }, device);
+        trainer.TrainMinibatch({ { features, minibatchData[featureStreamInfo].data }, { labels, minibatchData[labelStreamInfo].data } }, device);
         expectedLoss.push_back(trainer.PreviousMinibatchLossAverage());
 }
 
@@ -697,7 +697,7 @@ void TestLegacyModelSaving(const DeviceDescriptor& device)
     {
         trainer.RestoreFromCheckpoint(L"trainer.checkpoint" + std::to_wstring(i));
         classifierOutput->RestoreModel(modelFile + std::to_wstring(i));
-        trainer.TrainMinibatch({ { features, minibatchData[featureStreamInfo].m_data }, { labels, minibatchData[labelStreamInfo].m_data } }, device);
+        trainer.TrainMinibatch({ { features, minibatchData[featureStreamInfo].data }, { labels, minibatchData[labelStreamInfo].data } }, device);
         double loss = trainer.PreviousMinibatchLossAverage();
         FloatingPointCompare(loss, expectedLoss[i], "Post checkpoint restoration training loss does not match expectation");
     }
@@ -772,20 +772,20 @@ void TestCheckpointingWithStatefulNodes(const DeviceDescriptor& device)
     auto featureStreamInfo = minibatchSource->StreamInfo(features);
     auto labelStreamInfo = minibatchSource->StreamInfo(labels);
 
-    trainer.TrainMinibatch({ { features, minibatchData[featureStreamInfo].m_data }, { labels, minibatchData[labelStreamInfo].m_data } }, device);
+    trainer.TrainMinibatch({ { features, minibatchData[featureStreamInfo].data }, { labels, minibatchData[labelStreamInfo].data } }, device);
 
     vector<double> expectedLoss;
     for (int i = 0; i < epochSize / minibatchSize; i++)
     {
         trainer.SaveCheckpoint(L"stateful_nodes.model" + std::to_wstring(i));
-        trainer.TrainMinibatch({ { features, minibatchData[featureStreamInfo].m_data }, { labels, minibatchData[labelStreamInfo].m_data } }, device);
+        trainer.TrainMinibatch({ { features, minibatchData[featureStreamInfo].data }, { labels, minibatchData[labelStreamInfo].data } }, device);
         expectedLoss.push_back(trainer.PreviousMinibatchLossAverage());
     }
 
     for (int i = 0; i < epochSize / minibatchSize; i++)
     {
         trainer.RestoreFromCheckpoint(L"stateful_nodes.model" + std::to_wstring(i));
-        trainer.TrainMinibatch({ { features, minibatchData[featureStreamInfo].m_data }, { labels, minibatchData[labelStreamInfo].m_data } }, device);
+        trainer.TrainMinibatch({ { features, minibatchData[featureStreamInfo].data }, { labels, minibatchData[labelStreamInfo].data } }, device);
         double loss = trainer.PreviousMinibatchLossAverage();
         FloatingPointCompare(loss, expectedLoss[i], "Post checkpoint restoration training loss does not match expectation");
     }

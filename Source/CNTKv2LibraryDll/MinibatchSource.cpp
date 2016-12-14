@@ -74,7 +74,6 @@ namespace CNTK
         : m_epochEndReached(false),
           m_prevMinibatchSize(0),
           m_epochSize(MinibatchSource::InfinitelyRepeat),
-          m_sweepIndex(0)
           m_truncationLength(0),
           m_numWorkers(1),
           m_workerRank(0),
@@ -219,6 +218,7 @@ namespace CNTK
                 epochConfig.m_workerRank = m_distributed ? m_workerRank : 0;
                 epochConfig.m_minibatchSizeInSamples = minibatchSizeInSamples;
                 epochConfig.m_truncationSize = m_truncationLength;
+                epochConfig.m_allowMinibatchesToCrossSweepBoundaries = true;
 
                 if (m_epochSize == MinibatchSource::FullDataSweep) 
                 {
@@ -229,7 +229,7 @@ namespace CNTK
                     // Setting big value, but not the max in order to aviod bit overflow.
                     m_epochSize = std::numeric_limits<size_t>::max()/2;
                 }
-                esle 
+                else 
                 {
                     epochConfig.m_totalEpochSizeInSamples = m_epochSize;
                 }
@@ -277,6 +277,7 @@ namespace CNTK
                 newConfig.m_workerRank = m_distributed ? m_workerRank : 0;
                 newConfig.m_minibatchSizeInSamples = minibatchSizeInSamples;
                 newConfig.m_truncationSize = m_truncationLength;
+                newConfig.m_allowMinibatchesToCrossSweepBoundaries = true;
 
                 m_shim->SetConfiguration(newConfig, inputDescriptions);
 
@@ -285,8 +286,11 @@ namespace CNTK
 
             auto hasData = m_shim->GetMinibatch(m_matrices);
             m_epochEndReached = m_shim->IsEndOfEpoch();
+
             if (m_epochEndReached && !hasData)
                 return m_minibatchData;
+
+            bool hasReachedSweepEnd = m_shim->IsEndOfSweep();
 
             for (const auto& s: m_streamInfos)
             {

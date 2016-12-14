@@ -197,7 +197,7 @@ namespace CNTK
             // Probably passing the flag that the minibatch is the last, and empty arguments in case of empty minibatch.
             bool emptyMinibatch = arguments.empty() || (arguments.begin()->second == nullptr);
             if (emptyMinibatch)
-                return HandleEmptyMinibatch(arguments.empty());
+                return HandleEmptyMinibatch(sweepEnd, arguments.empty());
         }
 
         std::unordered_map<Variable, ValuePtr> outputs = { { m_aggregatedLossFunction, nullptr }, { m_trainingSampleCountVar, nullptr } };
@@ -258,8 +258,8 @@ namespace CNTK
         gradients.reserve(modelParameters.size());
         for (const auto& parameter : modelParameters)
             gradients.push_back(std::make_pair(parameter, parameterGradients[parameter]->Data()));
-        bool endOfData = m_prevMinibatchNumSamples == 0;
 
+        bool endOfData = m_prevMinibatchNumSamples == 0;
         if (m_distributed)
         {
             MinibatchInfo info
@@ -294,12 +294,12 @@ namespace CNTK
                 learnerParameterGradients[parameter] = value->second;
             }
 
-            anyUpdatesPerformed |= learner->Update(learnerParameterGradients, prevMinibatchNumSamples, sweepEnd);
+            anyUpdatesPerformed |= learner->Update(learnerParameterGradients, m_prevMinibatchNumSamples, sweepEnd);
         }
         return anyUpdatesPerformed;
     }
 
-    bool Trainer::HandleEmptyMinibatch(bool atEndOfData)
+    bool Trainer::HandleEmptyMinibatch(bool sweepEnd, bool atEndOfData)
     {
         if (m_distributedTrainer == nullptr) return false;
 
@@ -325,7 +325,7 @@ namespace CNTK
 
         bool anyUpdatesPerformed = false;
         if (!m_prevMinibatchNumSamples)
-            anyUpdatesPerformed = UpdateLearners(std::unordered_map<Parameter, NDArrayViewPtr>(gradients.begin(), gradients.end()));
+            anyUpdatesPerformed = UpdateLearners(std::unordered_map<Parameter, NDArrayViewPtr>(gradients.begin(), gradients.end()), sweepEnd);
         return anyUpdatesPerformed && !end;
     }
 

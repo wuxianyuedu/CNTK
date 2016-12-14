@@ -3148,24 +3148,6 @@ namespace CNTK
     };
 
     ///
-    /// A struct that combines a number of minibatch properties required by the learner.
-    ///
-    struct MinibatchInfo
-    {
-        MinibatchInfo(size_t numSamples, bool sweepEnd = false, bool atEndOfData = false, 
-                      NDArrayViewPtr trainingLossValue = nullptr, NDArrayViewPtr evalCriterionValue = nullptr) 
-                      : numberOfSamples(numSamples), sweepEnd(sweepEnd), atEndOfData(atEndOfData),
-                      trainingLossValue(trainingLossValue), evalCriterionValue(evalCriterionValue)
-        {}
-
-        size_t numberOfSamples;
-        bool sweepEnd; 
-        bool atEndOfData;
-        NDArrayViewPtr trainingLossValue;
-        NDArrayViewPtr evalCriterionValue;
-    };
-
-    ///
     /// Abstraction for learning a subset of parameters of a learnable function using first order gradient values
     /// For e.g momentum, AdaGrad, RMSProp etc. are different types of learners with their own algorithms for
     /// learning parameter values using first order gradients.
@@ -3177,7 +3159,7 @@ namespace CNTK
         // Method to update the parameters associated with this learner. By returning false, this method indicates that
         // learning has stopped for all of the parameters associated with this learner
         //
-        virtual bool Update(const std::unordered_map<Parameter, NDArrayViewPtr>& gradientValues, const MinibatchInfo& minibatchInfo) = 0;
+        virtual bool Update(const std::unordered_map<Parameter, NDArrayViewPtr>& gradientValues, size_t trainingSampleCount, bool sweepEnd = false) = 0;
 
         ///
         /// Returns the set of parameters associated with this learner.
@@ -3430,8 +3412,8 @@ namespace CNTK
 
     private:
         void Save(const std::wstring& modelFilePath, const Dictionary& state);
-        bool UpdateLearners(const std::unordered_map<Parameter, NDArrayViewPtr>& gradients);
-        bool HandleEmptyMinibatch(bool atEndOfData);
+        bool UpdateLearners(const std::unordered_map<Parameter, NDArrayViewPtr>& gradients, bool sweepEnd);
+        bool HandleEmptyMinibatch(bool sweepEnd, bool atEndOfData);
 
         FunctionPtr m_combinedTrainingFunction;
         FunctionPtr m_model;
@@ -3776,6 +3758,15 @@ namespace CNTK
     /// Distributed communicator that allows quantized aggregations.
     ///
     CNTK_API QuantizedDistributedCommunicatorPtr QuantizedMPICommunicator(bool zeroThresholdFor1Bit, bool useQuantizationForSelfStripe, size_t numQuantizationBits);
+
+    /// A collection of additional information needed for the distributed trainer to aggregate the gradients
+    struct MinibatchInfo
+    {
+        bool atEndOfData;
+        size_t numberOfSamples;
+        NDArrayViewPtr trainingLossValue;
+        NDArrayViewPtr evalCriterionValue;
+    };
 
     ///
     /// Distributed Trainer.

@@ -18,7 +18,8 @@ namespace Microsoft { namespace MSR { namespace CNTK {
 class NoRandomizer : public SequenceEnumerator
 {
 public:
-    NoRandomizer(IDataDeserializerPtr deserializer, bool multithreadedGetNextSequences = false);
+    NoRandomizer(IDataDeserializerPtr deserializer, 
+                 bool multithreadedGetNextSequences = false);
 
     virtual void StartEpoch(const EpochConfiguration& config) override;
     virtual Sequences GetNextSequences(size_t sampleCount) override;
@@ -82,7 +83,7 @@ private:
     size_t m_globalSamplePosition;
 
     // Total number of samples in the sweep.
-    size_t m_totalNumberOfSamples;
+    size_t m_sweepSizeInSamples;
 };
 
 }}}

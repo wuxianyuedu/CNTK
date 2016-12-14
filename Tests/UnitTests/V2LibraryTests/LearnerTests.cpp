@@ -232,11 +232,10 @@ void TestSweepBasedSchedule(const DeviceDescriptor& device)
     auto learner1 = SGDLearner({}, schedule);
     assert(1 == learner1->LearningRate());
 
-    MinibatchInfo mockMBInfo = { 1, true };
-
+    
     for (auto i : {2, 3, 4, 5 })
     {
-        learner1->Update({}, mockMBInfo);
+        learner1->Update({}, 1, true);
         assert(i == learner1->LearningRate());
     }
 

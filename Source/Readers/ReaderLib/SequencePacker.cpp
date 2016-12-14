@@ -41,7 +41,7 @@ Minibatch SequencePacker::ReadMinibatch()
     auto sequences = m_sequenceEnumerator->GetNextSequences(m_minibatchSize);
     const auto& batch = sequences.m_data;
 
-    Minibatch minibatch(sequences.m_endOfEpoch);
+    Minibatch minibatch(sequences.m_endOfSweep, sequences.m_endOfEpoch);
     if (batch.empty())
     {
         return minibatch;

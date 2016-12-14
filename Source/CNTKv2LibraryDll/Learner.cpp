@@ -222,9 +222,8 @@ namespace CNTK
         }
     }
 
-    /*virtual*/ bool LearnerBase::Update(const unordered_map<Parameter, NDArrayViewPtr>& gradientValues, const MinibatchInfo& minibatchInfo) /*override*/
+    /*virtual*/ bool LearnerBase::Update(const unordered_map<Parameter, NDArrayViewPtr>& gradientValues, size_t trainingSampleCount, bool sweepEnd) /*override*/
     {
-        auto trainingSampleCount = minibatchInfo.numberOfSamples;
         if (LearningRate(trainingSampleCount) == 0.0)
         {
             return false;
@@ -274,7 +273,7 @@ namespace CNTK
         }
         m_sampleCount += trainingSampleCount;
         m_minibatchCount++;
-        if (minibatchInfo.sweepEnd)
+        if (sweepEnd)
         {
             m_sweepCount++;
         }

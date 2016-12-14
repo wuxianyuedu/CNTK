@@ -168,8 +168,8 @@ void TestMinibatchSourceWarmStart(size_t numMBs, size_t minibatchSize, size_t wa
 
         // NOTE: the expectedNumSamples are valid only in this test case scenario
         size_t expectedNumSamples = minibatchSize;
-        size_t numSamples = minibatchData[featureStreamInfo].m_numSamples;
-        size_t numSamples2 = minibatchData2[featureStreamInfo].m_numSamples;
+        size_t numSamples = minibatchData[featureStreamInfo].numberOfSamples;
+        size_t numSamples2 = minibatchData2[featureStreamInfo].numberOfSamples;
 
         if (!distributed && numSamples != numSamples2)
         {
@@ -189,8 +189,81 @@ void TestMinibatchSourceWarmStart(size_t numMBs, size_t minibatchSize, size_t wa
     }
 }
 
+void TestEndOfSweepFlag(size_t maxSamples, size_t mbSize, bool randomize)
+{
+    const size_t sweepSize = 603;
+    auto ctfInput = L"SimpleDataTest_cntk_text.txt"; 
+    std::vector<StreamConfiguration> streamConfig { { L"features", 2 } };
+    auto cpuDevice = DeviceDescriptor::CPUDevice();    
+    auto src = TextFormatMinibatchSource(ctfInput, streamConfig, maxSamples, randomize);
+
+    maxSamples = (maxSamples == MinibatchSource::FullDataSweep) ? sweepSize : maxSamples;
+
+    bool reachedEndOfEpoch = false;
+    size_t sampleCount = 0;
+
+    while (sampleCount < maxSamples)
+    {
+        auto& dataMap = src->GetNextMinibatch(mbSize, cpuDevice);
+
+        if (dataMap.size() != streamConfig.size())
+        {
+            ReportFailure("TestThatEndOfSweepFlagIsSetCorrectly failed: "
+                          "unexpected number of streams in the minibatch (%zu).", dataMap.size());
+        }
+
+        for (auto& streamData : dataMap)
+        {
+            auto numSamplesInMinibatch = streamData.second.numberOfSamples;
+            bool expectedEndOfSweep = ((sampleCount + numSamplesInMinibatch) % sweepSize) == 0;
+            expectedEndOfSweep |= ((sampleCount) / sweepSize) < ((sampleCount + numSamplesInMinibatch) / sweepSize);
+
+
+            reachedEndOfEpoch = (sampleCount + mbSize >= maxSamples);
+            size_t expectedNumSamples = reachedEndOfEpoch ? (maxSamples - sampleCount) : mbSize;
+            
+
+            if (streamData.second.sweepEnd != expectedEndOfSweep)
+            {
+                ReportFailure("TestThatEndOfSweepFlagIsSetCorrectly failed: end of sweep flag is not set.");
+            }
+            if (streamData.second.numberOfSamples != expectedNumSamples)
+            {
+                ReportFailure("TestThatEndOfSweepFlagIsSetCorrectly failed: "
+                              "unexpected number of samples in the minibatch (%zu).", streamData.second.numberOfSamples);
+            }
+            if (streamData.second.numberOfSequences != expectedNumSamples)
+            {
+                ReportFailure("TestThatEndOfSweepFlagIsSetCorrectly failed: "
+                              "unexpected number of sequences in the minibatch (%zu).", streamData.second.numberOfSequences);
+            }
+        }
+
+        sampleCount += mbSize;
+    }
+
+    auto& emptyDataMap = src->GetNextMinibatch(mbSize, cpuDevice);
+    assert(emptyDataMap.empty());
+}
+
+void TestThatEndOfSweepFlagIsSetCorrectly()
+{
+    for (auto randomize : { false, true })
+    {
+         TestEndOfSweepFlag(MinibatchSource::FullDataSweep, 603, randomize);
+         TestEndOfSweepFlag(MinibatchSource::FullDataSweep, 1000, randomize);
+         TestEndOfSweepFlag(MinibatchSource::FullDataSweep, 100, randomize);
+         
+         TestEndOfSweepFlag(100, 30, randomize);
+         TestEndOfSweepFlag(2000, 500, randomize);
+         TestEndOfSweepFlag(2412, 301, randomize);
+    }
+}
+
 void MinibatchSourceTests()
 {
+    TestThatEndOfSweepFlagIsSetCorrectly();
+
     // Test no-randomize minibatch source
     TestMinibatchSourceWarmStart(10, 64, 128, false);
     TestMinibatchSourceWarmStart(10, 64, 0, false);

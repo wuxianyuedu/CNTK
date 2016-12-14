@@ -82,9 +82,15 @@ private:
     // Load data for chunks if needed.
     void LoadDataChunks(const ClosedOpenChunkInterval& windowRange);
 
+    // Load actual sequence data up to the specified sample count,
+    // returns the total number of loaded samples.
+    size_t LoadSequenceData(size_t sampleCount, Sequences& sequence);
+
     // Get next sequence descriptions that do not exceed sample count.
-    // Returns true if epoch end is reached.
-    bool GetNextSequenceDescriptions(size_t sampleCount, std::vector<RandomizedSequenceDescription>& result, ClosedOpenChunkInterval& windowRange);
+    // Returns a tuple containing "end of sweep", "end of epoch" flags and
+    // the total number of samples aggregated over all sequence descriptions 
+    // in the 'result' vector.
+    std::tuple<bool, bool, size_t> GetNextSequenceDescriptions(size_t sampleCount, std::vector<RandomizedSequenceDescription>& result, ClosedOpenChunkInterval& windowRange);
 
     // Decimates sequence descriptions and loads chunks of data.
     void Decimate(const std::vector<RandomizedSequenceDescription>& all, std::vector<RandomizedSequenceDescription>& decimated);
@@ -117,7 +123,7 @@ private:
     size_t m_sweepStartInSamples;
 
     // Total number of samples in a sweep.
-    size_t m_sweepTotalNumberOfSamples;
+    size_t m_sweepSizeInSamples;
 
     IDataDeserializerPtr m_deserializer;
 
