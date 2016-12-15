@@ -10,7 +10,7 @@ from cntk.blocks import *  # non-layer like building blocks such as LSTM()
 from cntk.layers import *  # layer-like stuff such as Linear()
 from cntk.models import *  # higher abstraction level, e.g. entire standard models and also operators like Sequential()
 from cntk.utils import *
-from cntk.io import MinibatchSource, CTFDeserializer, StreamDef, StreamDefs
+from cntk.io import MinibatchSource, CTFDeserializer, StreamDef, StreamDefs, INFINITELY_REPEAT, FULL_DATA_SWEEP
 from cntk import Trainer
 from cntk.learner import adam_sgd, learning_rate_schedule, UnitType, momentum_as_time_constant_schedule
 from cntk.ops import cross_entropy_with_softmax, classification_error
@@ -35,12 +35,11 @@ hidden_dim = 300
 # define the reader    #
 ########################
 
-def create_reader(path):
+def create_reader(path, is_training=True):
     return MinibatchSource(CTFDeserializer(path, StreamDefs(
         query         = StreamDef(field='S0', shape=input_dim,   is_sparse=True),
-        intent_unused = StreamDef(field='S1', shape=num_intents, is_sparse=True),  # BUGBUG: unused, and should infer dim
         slot_labels   = StreamDef(field='S2', shape=label_dim,   is_sparse=True)
-    )))
+    )), randomize=is_training, epoch_size = INFINITELY_REPEAT if is_training else FULL_DATA_SWEEP)
 
 ########################
 # define the model     #
