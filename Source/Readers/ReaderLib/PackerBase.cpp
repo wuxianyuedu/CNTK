@@ -6,6 +6,9 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define _SCL_SECURE_NO_WARNINGS
 
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
+
 #include "PackerBase.h"
 #include "ElementTypeUtils.h"
 
@@ -52,15 +55,41 @@ void PackerBase::SetConfiguration(const ReaderConfiguration& config, const std::
     m_config = config;
     if (m_config.m_minibatchSizeInSamples == 0)
         LogicError("Minibatch size cannot be zero.");
+
+    if (m_useLocalTimeline)
+    {
+        // Set global minibatch size to max and local minibatch per worker.
+        bool shouldAddOneSample = m_localMinibatchSizeInSamples % m_config.m_numberOfWorkers > m_config.m_workerRank;
+        m_localMinibatchSizeInSamples = (int)m_config.m_minibatchSizeInSamples / (int)m_config.m_numberOfWorkers + (shouldAddOneSample ? 1 : 0);
+        m_globalMinibatchSizeInSamples = SIZE_MAX;
+
+        if (m_localMinibatchSizeInSamples == 0)
+        {
+            // We expect to have a least a single sample per worker.
+            fprintf(stderr, "WARNING: The minibatch size '%" PRIu64 "' is too small to be used with %d workers\n",
+                    m_config.m_minibatchSizeInSamples, 
+                    (int)m_config.m_numberOfWorkers);
+            m_localMinibatchSizeInSamples = 1;
+        }
+    }
+    else
+    {
+        // Set global and minibatch local minibatch size as in config.
+        m_globalMinibatchSizeInSamples = m_localMinibatchSizeInSamples = m_config.m_minibatchSizeInSamples;
+    }
 }
 
 PackerBase::PackerBase(SequenceEnumeratorPtr sequenceEnumerator,
     const std::vector<StreamDescriptionPtr>& streams,
-    size_t numberOfBuffers) :
+    size_t numberOfBuffers,
+    bool useLocalTimeline) :
     m_sequenceEnumerator(sequenceEnumerator),
     m_outputStreamDescriptions(streams),
     m_numberOfBuffers(numberOfBuffers),
-    m_currentBufferIndex(0)
+    m_currentBufferIndex(0),
+    m_useLocalTimeline(useLocalTimeline),
+    m_globalMinibatchSizeInSamples(0),
+    m_localMinibatchSizeInSamples(0)
 {
     assert(m_numberOfBuffers >= 1);
     m_inputStreamDescriptions = sequenceEnumerator->GetStreamDescriptions();

@@ -110,7 +110,7 @@ TruncatedBPTTPacker::TruncatedBPTTPacker(
     SequenceEnumeratorPtr sequenceEnumerator,
     const vector<StreamDescriptionPtr>& streams,
     size_t numberOfBuffers)
-    : PackerBase(sequenceEnumerator, streams, numberOfBuffers)
+    : PackerBase(sequenceEnumerator, streams, numberOfBuffers, true)
 {
     auto sparseOutput = find_if(m_outputStreamDescriptions.begin(), m_outputStreamDescriptions.end(), [](const StreamDescriptionPtr& s){ return s->m_storageType == StorageType::sparse_csc; });
     if (sparseOutput != m_outputStreamDescriptions.end())
@@ -311,7 +311,8 @@ void TruncatedBPTTPacker::ReadSequencesToSlot(size_t slotIndex)
     {
         // We need a single sequence, potentially we can request (m_truncationSize - slot.AvailableNumberOfSamples())
         // to be more efficient. In reality the truncation size usually is less the sequence size.
-        auto s = m_sequenceEnumerator->GetNextSequences(1);
+        // Bptt always operates on a local timeline, so we do not limit the global minibatch count.
+        auto s = m_sequenceEnumerator->GetNextSequences(SIZE_MAX, 1);
 
         // Adding sequence to the slot for all streams.
         for (size_t i = 0; i < s.m_data.size(); ++i)

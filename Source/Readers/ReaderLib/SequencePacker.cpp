@@ -38,14 +38,12 @@ MBLayoutPtr SequencePacker::CreateMBLayout(const StreamBatch& batch)
 
 Minibatch SequencePacker::ReadMinibatch()
 {
-    auto sequences = GetNextSequences();
+    auto sequences = m_sequenceEnumerator->GetNextSequences(m_globalMinibatchSizeInSamples, m_localMinibatchSizeInSamples);
     const auto& batch = sequences.m_data;
 
     Minibatch minibatch(sequences.m_endOfEpoch);
     if (batch.empty())
-    {
         return minibatch;
-    }
 
     auto& currentBuffer = m_streamBuffers[m_currentBufferIndex];
 

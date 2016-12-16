@@ -33,7 +33,8 @@ protected:
 
     PackerBase(SequenceEnumeratorPtr sequenceEnumerator,
                const std::vector<StreamDescriptionPtr>& streams,
-               size_t numberOfBuffers);
+               size_t numberOfBuffers,
+               bool useLocalTimeline);
 
     typedef std::vector<SequenceDataPtr> StreamBatch;
 
@@ -54,11 +55,6 @@ protected:
     // specifies the offset of the first value from the given sample in the sequence data/ array 
     // (sampleOffset is equal to the sum of sample sizes of all preceding samples).
     void PackDenseSample(char* destination, SequenceDataPtr sequence, size_t sampleOffset, size_t sampleSize);
-
-    virtual Sequences GetNextSequences()
-    {
-        return m_sequenceEnumerator->GetNextSequences(m_config.m_minibatchSizeInSamples);
-    }
 
     SequenceEnumeratorPtr m_sequenceEnumerator;
 
@@ -88,6 +84,15 @@ protected:
 
     // Current config.
     ReaderConfiguration m_config;
+
+    // A flag indicating whether to use local timeline for data.
+    bool m_useLocalTimeline;
+
+    // A minibatch size for this worker in local samples.
+    size_t m_localMinibatchSizeInSamples;
+
+    // A minibatch size for this worker in global samples.
+    size_t m_globalMinibatchSizeInSamples;
 
 public:
     // Sets current epoch configuration.
