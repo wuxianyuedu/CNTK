@@ -11,7 +11,12 @@
 #include "BlockRandomizer.h"
 #include "CorpusDescriptor.h"
 
-#pragma warning(disable:4724)
+#pragma warning(push)
+// disable warning about possible mod 0 operation in uniform_int_distribution
+#pragma warning(disable:4724)  
+#include <boost/random/uniform_int_distribution.hpp>
+#pragma warning(pop)
+
 #include "SequentialDeserializer.h"
 
 using namespace Microsoft::MSR::CNTK;
@@ -706,8 +711,8 @@ BOOST_AUTO_TEST_CASE(NumericCorpusDescriptor)
     CorpusDescriptor corpus(true);
     for (int i = 0; i < 10; ++i)
     {
-        auto value = distr(rng);
-        BOOST_CHECK_EQUAL(value, corpus.KeyToId(std::to_string(value)));
+       auto value = distr(rng);
+       BOOST_CHECK_EQUAL(value, corpus.KeyToId(std::to_string(value)));
     }
     BOOST_CHECK_EXCEPTION(
         corpus.KeyToId("not a number"),

@@ -2,6 +2,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE.md file in the project root for full license information.
 //
+#ifdef _MSC_VER
+#include <boost/random/uniform_real_distribution.hpp>
+#endif
 #include "CNTKLibrary.h"
 #include "PrimitiveOpType.h"
 #include "Common.h"
@@ -10,28 +13,22 @@
 #include <vector>
 #include <functional>
 #include <iostream>
-#ifdef _MSC_VER
-#include <boost/random/uniform_real_distribution.hpp>
-#endif
 
 using namespace CNTK;
 using namespace std; 
-
 using namespace Microsoft::MSR::CNTK;
-
 
 static const size_t maxNDShapeSize = 10;
 static const size_t maxNumAxes = 3;
 static const size_t maxDimSize = 5;
 
-
 static size_t keyCounter = 0;
 #ifdef _MSC_VER
-    static boost::random::uniform_real_distribution<double> double_dist = boost::random::uniform_real_distribution<double>();
-    static boost::random::uniform_real_distribution<float> float_dist = boost::random::uniform_real_distribution<float>();
+static boost::random::uniform_real_distribution<double> double_dist = boost::random::uniform_real_distribution<double>();
+static boost::random::uniform_real_distribution<float> float_dist = boost::random::uniform_real_distribution<float>();
 #else
-    static uniform_real_distribution<double> double_dist = uniform_real_distribution<double>();
-    static uniform_real_distribution<float> float_dist = uniform_real_distribution<float>();
+static uniform_real_distribution<double> double_dist = uniform_real_distribution<double>();
+static uniform_real_distribution<float> float_dist = uniform_real_distribution<float>();
 #endif
 static std::wstring tempFilePath = L"serialization.tmp";
 
@@ -152,7 +149,6 @@ void TestDictionarySerialization(size_t dictSize)
        throw std::runtime_error("Error deleting temporary test file 'serialization.tmp'.");
 
     Dictionary originalDict = CreateDictionary(dictSize, dictSize);
-    
     {
         fstream stream;
         OpenStream(stream, tempFilePath, false);
@@ -161,7 +157,6 @@ void TestDictionarySerialization(size_t dictSize)
     }
 
     Dictionary deserializedDict1;
-
     {
         fstream stream;
         OpenStream(stream, tempFilePath, true);
@@ -584,13 +579,11 @@ void TestCheckpointing(const DeviceDescriptor& device)
     if (device.Type() == DeviceKind::GPU)
     {
         // TODO: instead of cloning here, reset curand generator to make sure that parameters are initialized to the same state.
-#ifdef DEBUG
         for (auto& p : net1_1->Parameters()) 
         {
             // make sure all parameters are initialized
             assert(p.Value() != nullptr);
         }
-#endif
         net1_2 = net1_1->Clone();
     }
     else 
@@ -611,14 +604,12 @@ void TestCheckpointing(const DeviceDescriptor& device)
 
     if (device.Type() == DeviceKind::GPU)
     {
-#ifdef DEBUG
         // TODO: instead of cloning here, reset curand generator to make sure that parameters are initialized to the same state.
         for (auto& p : net2_1->Parameters()) 
         {
             // make sure all parameters are initialized
             assert(p.Value() != nullptr);
         }
-#endif
         net2_2 = net2_1->Clone();
     }
     else 
