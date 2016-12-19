@@ -3920,7 +3920,7 @@ namespace CNTK
         virtual ~TrainingControl() {}
     };
 
-    TrainingControlPtr BasicTrainingControl(size_t maxTrainingSamplesCount, size_t checkpointFrequencyinSamples, const std::pair<std::wstring, std::wstring>& modelAndCheckpointFileNames);
+    CNTK_API TrainingControlPtr CreateBasicTrainingControl(size_t mbSize, size_t maxTrainingSamplesCount, size_t checkpointFrequencyinSamples, const std::wstring& chechkpointFileName);
 }
 
 

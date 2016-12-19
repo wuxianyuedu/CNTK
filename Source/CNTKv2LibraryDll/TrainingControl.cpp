@@ -9,9 +9,12 @@
 
 namespace CNTK
 {
-    TrainingControlPtr BasicTrainingControl(size_t maxTrainingSamplesCount, size_t checkpointFrequencyinSamples, const std::pair<std::wstring, std::wstring>& modelAndCheckpointFileNames);
+    TrainingControlPtr CreateBasicTrainingControl(size_t minibatchSize, size_t maxTrainingSamplesCount, size_t checkpointFrequencyinSamples, const std::wstring& checkpointFile)
+    {
+        return MakeSharedObject<BasicTrainingControl>(minibatchSize, maxTrainingSamplesCount, checkpointFrequencyinSamples, checkpointFile);
+    }
 
-    BasicTrainingControl::BasicTrainingControl(size_t minibatchSize, size_t maxTrainingSamplesCount, size_t checkpointFrequencyinSamples, const std::wstring checkPointFileName) :
+    BasicTrainingControl::BasicTrainingControl(size_t minibatchSize, size_t maxTrainingSamplesCount, size_t checkpointFrequencyinSamples, const std::wstring& checkPointFileName) :
         m_minibatchSize(minibatchSize),
         m_maxTrainingSamplesCount(maxTrainingSamplesCount),
         m_checkpointFrequencyinSamples(checkpointFrequencyinSamples),

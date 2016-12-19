@@ -17,7 +17,7 @@ namespace CNTK
             size_t minibatchSize,
             size_t maxTrainingSamplesCount,
             size_t checkpointFrequencyinSamples,
-            const std::wstring checkPointFileName);
+            const std::wstring& checkPointFileName);
 
         // Optional callback that gets called before each minbatch during training
         void PreMinibatchCallback(const Trainer& trainer) override;
