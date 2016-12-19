@@ -16,7 +16,7 @@ class ProgressPrinter(object):
     It provides the number of samples, average loss and average metric
     since the last print or since the start of accumulation.
     '''
-    def __init__(self, freq=None, first=0, tag='', log_to_file=None, distributed_learner=None, gen_heartbeat=False):
+    def __init__(self, freq=None, first=0, tag='', log_to_file=None, distributed_learner=None, gen_heartbeat=False, num_epochs=300):
         '''
         Constructor. The optional ``freq`` parameter determines how often
         printing will occur. The value of 0 means an geometric
@@ -45,6 +45,7 @@ class ProgressPrinter(object):
         self.log_to_file = log_to_file
         self.distributed_learner = distributed_learner
         self.gen_heartbeat = gen_heartbeat
+        self.num_epochs =  num_epochs
 
         self.logfilename = None
         if self.log_to_file != None:
@@ -59,10 +60,19 @@ class ProgressPrinter(object):
             with open(self.logfilename, "w") as logfile:
                 logfile.write(self.logfilename + "\n")
 
+            self.___logprint('CNTKCommandTrainInfo: train : ' + str(num_epochs))
+            self.___logprint('CNTKCommandTrainInfo: CNTKNoMoreCommands_Total : ' + str(num_epochs))
+            self.___logprint('CNTKCommandTrainBegin: train')
+
         if freq==0:
             self.___logprint(' average      since    average      since      examples')
             self.___logprint('    loss       last     metric       last              ')
             self.___logprint(' ------------------------------------------------------')
+
+    def end_progress_print(self, msg=""):
+        self.___logprint('CNTKCommandTrainEnd: train')
+        if msg !="" and self.log_to_file != None:
+            self.___logprint(msg)
 
     def avg_loss_since_start(self):
         '''
