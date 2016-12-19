@@ -3470,6 +3470,27 @@ namespace CNTK
         double blockLearningRate = 1.0);
 
     ///
+    /// Describes an input stream: its name, element type, storage, etc.
+    ///
+    struct StreamInformation
+    {
+        std::wstring m_name;           // Unique name of the stream
+        size_t m_id;                   // Unique identifier of the stream
+        StorageFormat m_storageFormat; // Storage format of the stream
+        DataType m_elementType;        // Element type of the stream
+        NDShape m_sampleLayout;        // Layout of the sample for the stream
+    };
+
+    inline bool operator==(const StreamInformation& left, const StreamInformation& right)
+    {
+        return ((left.m_id == right.m_id) &&
+            (left.m_name == right.m_name) &&
+            (left.m_storageFormat == right.m_storageFormat) &&
+            (left.m_elementType == right.m_elementType) &&
+            (left.m_sampleLayout == right.m_sampleLayout));
+    }
+
+    ///
     /// Trainer is the top-level abstraction responsible for the orchestration of the training of a model
     /// using the specified learners and training data either explicitly supplied as Value objects or from
     /// a MinibatchSource object.
@@ -3562,6 +3583,14 @@ namespace CNTK
         ///
         CNTK_API size_t TotalNumberOfSamplesSeen() const;
 
+        ///
+        // Trains the model with data continuously fed by the specified 'reader' and duration of 
+        // training determined by the specified TrainingControl object
+        // The 'modelArgumentsToMinibatchSourceStreamMap' argument specifies a 1-1 mapping between the model's argument variables 
+        // and the reader stream that corresponds to that argument
+        ///
+        void Train(MinibatchSourcePtr reader, const std::unordered_map<Variable, StreamInformation>& modelArgumentsToMinibatchSourceStreamMap, TrainingControlPtr controller);
+
     private:
         void ExecuteForwardBackward(
             const std::unordered_map<Variable, ValuePtr>& arguments,
@@ -3590,27 +3619,6 @@ namespace CNTK
         ValuePtr m_prevMinibatchAggregateTrainingLossValue;
         ValuePtr m_prevMinibatchAggregateEvalCriterionValue;
     };
-
-    ///
-    /// Describes an input stream: its name, element type, storage, etc.
-    ///
-    struct StreamInformation
-    {
-        std::wstring m_name;           // Unique name of the stream
-        size_t m_id;                   // Unique identifier of the stream
-        StorageFormat m_storageFormat; // Storage format of the stream
-        DataType m_elementType;        // Element type of the stream
-        NDShape m_sampleLayout;        // Layout of the sample for the stream
-    };
-
-    inline bool operator==(const StreamInformation& left, const StreamInformation& right)
-    {
-        return ((left.m_id == right.m_id) &&
-                (left.m_name == right.m_name) &&
-                (left.m_storageFormat == right.m_storageFormat) &&
-                (left.m_elementType == right.m_elementType) &&
-                (left.m_sampleLayout == right.m_sampleLayout));
-    }
 }
 
 namespace std {
@@ -3892,6 +3900,27 @@ namespace CNTK
     /// Distributed communicator that allows quantized aggregations.
     ///
     CNTK_API QuantizedDistributedCommunicatorPtr QuantizedMPICommunicator(bool zeroThresholdFor1Bit, bool useQuantizationForSelfStripe, size_t numQuantizationBits);
+
+    ///
+    /// Represents an entity controlling a training session..
+    ///
+    class TrainingControl
+    {
+    public:
+        // Optional callback that gets called before each minbatch during training
+        virtual void PreMinibatchCallback(const Trainer& trainer) = 0;
+
+        // Optional callback that gets called after each minbatch during training
+        // Return value is true if training should be continued.
+        virtual bool PostMinibatchCallback(Trainer& trainer, bool minibatchTrainingResult) = 0;
+
+        // Returns the desired size of the next minibatch
+        virtual size_t NextMinibatchSize() = 0;
+
+        virtual ~TrainingControl() {}
+    };
+
+    TrainingControlPtr BasicTrainingControl(size_t maxTrainingSamplesCount, size_t checkpointFrequencyinSamples, const std::pair<std::wstring, std::wstring>& modelAndCheckpointFileNames);
 }
 
 

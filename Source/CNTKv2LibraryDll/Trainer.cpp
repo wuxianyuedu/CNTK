@@ -341,4 +341,27 @@ namespace CNTK
     {
         return m_parameterLearners->ParameterLearners().front()->TotalNumberOfSamplesSeen();
     }
+
+    void Trainer::Train(MinibatchSourcePtr minibatchSource, const std::unordered_map<Variable, StreamInformation>& modelArgumentsToMinibatchSourceStreamMap, TrainingControlPtr controller)
+    {
+        std::unordered_map<Variable, ValuePtr> minibatch;
+        bool shouldTrain = true;
+        bool trainingControlShouldTrain = true;
+        while (shouldTrain)
+        {
+            size_t mbSize = controller->NextMinibatchSize();
+            auto minibatchData = minibatchSource->GetNextMinibatch(mbSize);
+
+            minibatch.clear();
+            if (!minibatchData.empty() && trainingControlShouldTrain)
+            {
+                for (auto v : modelArgumentsToMinibatchSourceStreamMap)
+                    minibatch.insert({ v.first, minibatchData[v.second].m_data });
+            }
+
+            controller->PreMinibatchCallback(*this);
+            shouldTrain = TrainMinibatch(minibatch);
+            trainingControlShouldTrain = controller->PostMinibatchCallback(*this, shouldTrain);
+        }
+    }
 }
