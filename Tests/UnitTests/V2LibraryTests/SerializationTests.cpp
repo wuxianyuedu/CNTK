@@ -2,9 +2,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE.md file in the project root for full license information.
 //
-#ifdef _MSC_VER
+
 #include <boost/random/uniform_real_distribution.hpp>
-#endif
+
 #include "CNTKLibrary.h"
 #include "PrimitiveOpType.h"
 #include "Common.h"

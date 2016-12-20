@@ -21,9 +21,12 @@
 #include <thread>
 #include <iostream>
 #include <algorithm>
-#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable:4244)
+#include <boost/random/normal_distribution.hpp>
+#pragma warning(pop)
 #include <boost/random/uniform_real_distribution.hpp>
-#endif
+
 #ifdef _WIN32
 #define NOMINMAX
 #include "Windows.h"
@@ -1011,15 +1014,9 @@ void CPUMatrix<ElemType>::SetUniformRandomValue(const ElemType low, const ElemTy
     if (IsEmpty())
         LogicError("SetUniformRandomValue: Matrix is empty.");
 
-#ifdef _MSC_VER
     std::mt19937_64 generator;
     generator.seed(seed == USE_TIME_BASED_SEED ? (unsigned long) time(NULL) : seed);
     boost::random::uniform_real_distribution<ElemType> r(low, high);
-#else
-    std::default_random_engine generator(seed);
-    std::uniform_real_distribution<ElemType> r(low, high); 
-#endif
-
 
     ElemType* bufPtr = Data();
     long m = (long) GetNumElements();
@@ -1048,13 +1045,11 @@ void CPUMatrix<ElemType>::SetGaussianRandomValue(const ElemType mean, const Elem
         LogicError("SetUniformRandomValue: Matrix is empty.");
 
     auto& us = *this;
-#ifdef _MSC_VER
+
     std::mt19937_64 generator;
     generator.seed(seed == USE_TIME_BASED_SEED ? (unsigned long) time(NULL) : seed);
-#else
-    std::default_random_engine generator(seed);
-#endif
-    std::normal_distribution<ElemType> r(mean, sigma);
+    boost::random::normal_distribution<ElemType> r(mean, sigma);
+
     // #pragma omp parallel for   // is it thread safe?
     foreach_coord (i, j, us)
     {
@@ -1072,13 +1067,10 @@ void CPUMatrix<ElemType>::AddGaussianRandomValue(const ElemType mean, const Elem
         LogicError("SetUniformRandomValue: Matrix is empty.");
 
     auto& us = *this;
-#ifdef _MSC_VER
+
     std::mt19937_64 generator;
     generator.seed(seed == USE_TIME_BASED_SEED ? (unsigned long) time(NULL) : seed);
-#else
-    std::default_random_engine generator(seed);
-#endif
-    std::normal_distribution<ElemType> r(mean, sigma);
+    boost::random::normal_distribution<ElemType> r(mean, sigma);
 
     long m = (long) GetNumRows(), n = (long) GetNumCols();
     for (long j = 0; j < n; j++)
@@ -1111,11 +1103,7 @@ void CPUMatrix<ElemType>::SetUniformRandomMask(const ElemType maskRate, const El
     assert(cpuRNGHandle != nullptr);
 
     auto& us = *this;
-#ifdef _MSC_VER
     boost::random::uniform_real_distribution<ElemType> r(0, 1);
-#else
-    std::uniform_real_distribution<ElemType> r(0, 1);
-#endif
     long m = (long) GetNumRows(), n = (long) GetNumCols();
     ElemType v;
     for (long j = 0; j < n; j++)
