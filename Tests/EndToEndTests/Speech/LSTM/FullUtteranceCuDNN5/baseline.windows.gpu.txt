@@ -1,56 +1,59 @@
 CPU info:
-    CPU Model Name: Intel(R) Xeon(R) CPU W3565 @ 3.20GHz
-    Hardware threads: 8
-    Total Memory: 12580436 kB
+    CPU Model Name: Intel(R) Xeon(R) CPU E5-2630 v2 @ 2.60GHz
+    Hardware threads: 24
+    Total Memory: 268381192 kB
 -------------------------------------------------------------------
-=== Running /cygdrive/c/jenkins/workspace/CNTK-Test-Windows-W1/x64/release/cntk.exe configFile=C:\jenkins\workspace\CNTK-Test-Windows-W1\Tests\EndToEndTests\Speech\LSTM/cntk.cntk currentDirectory=C:\jenkins\workspace\CNTK-Test-Windows-W1\Tests\EndToEndTests\Speech\Data RunDir=C:\Users\svcphil\AppData\Local\Temp\cntk-test-20161215082658.690476\Speech\LSTM_FullUtteranceCuDNN5@release_gpu DataDir=C:\jenkins\workspace\CNTK-Test-Windows-W1\Tests\EndToEndTests\Speech\Data ConfigDir=C:\jenkins\workspace\CNTK-Test-Windows-W1\Tests\EndToEndTests\Speech\LSTM OutputDir=C:\Users\svcphil\AppData\Local\Temp\cntk-test-20161215082658.690476\Speech\LSTM_FullUtteranceCuDNN5@release_gpu DeviceId=0 timestamping=true truncated=false speechTrain=[reader=[nbruttsineachrecurrentiter=2]] speechTrain=[SGD=[epochSize=2560]] speechTrain=[SGD=[maxEpochs=2]] speechTrain=[SGD=[numMBsToShowResult=1]] modelSelector=2 shareNodeValueMatrices=true
-CNTK 2.0.beta6.0+ (HEAD 5f1fab, Dec 15 2016 06:29:34) on cntk-muc01 at 2016/12/15 08:47:54
+=== Running /cygdrive/c/jenkins/workspace/CNTK-Test-Windows-SlaveTest/x64/release/cntk.exe configFile=C:\jenkins\workspace\CNTK-Test-Windows-SlaveTest\Tests\EndToEndTests\Speech\LSTM/cntk.cntk currentDirectory=C:\jenkins\workspace\CNTK-Test-Windows-SlaveTest\Tests\EndToEndTests\Speech\Data RunDir=C:\cygwin64\tmp\cntk-test-20161220071215.50799\Speech\LSTM_FullUtteranceCuDNN5@release_gpu DataDir=C:\jenkins\workspace\CNTK-Test-Windows-SlaveTest\Tests\EndToEndTests\Speech\Data ConfigDir=C:\jenkins\workspace\CNTK-Test-Windows-SlaveTest\Tests\EndToEndTests\Speech\LSTM OutputDir=C:\cygwin64\tmp\cntk-test-20161220071215.50799\Speech\LSTM_FullUtteranceCuDNN5@release_gpu DeviceId=0 timestamping=true truncated=false speechTrain=[reader=[nbruttsineachrecurrentiter=2]] speechTrain=[SGD=[epochSize=2560]] speechTrain=[SGD=[maxEpochs=2]] speechTrain=[SGD=[numMBsToShowResult=1]] modelSelector=2 shareNodeValueMatrices=true
+CNTK 2.0.beta6.0+ (HEAD bbb440, Dec 20 2016 05:52:50) on DPHAIM-24 at 2016/12/20 15:31:03
 
-C:\jenkins\workspace\CNTK-Test-Windows-W1\x64\release\cntk.exe  configFile=C:\jenkins\workspace\CNTK-Test-Windows-W1\Tests\EndToEndTests\Speech\LSTM/cntk.cntk  currentDirectory=C:\jenkins\workspace\CNTK-Test-Windows-W1\Tests\EndToEndTests\Speech\Data  RunDir=C:\Users\svcphil\AppData\Local\Temp\cntk-test-20161215082658.690476\Speech\LSTM_FullUtteranceCuDNN5@release_gpu  DataDir=C:\jenkins\workspace\CNTK-Test-Windows-W1\Tests\EndToEndTests\Speech\Data  ConfigDir=C:\jenkins\workspace\CNTK-Test-Windows-W1\Tests\EndToEndTests\Speech\LSTM  OutputDir=C:\Users\svcphil\AppData\Local\Temp\cntk-test-20161215082658.690476\Speech\LSTM_FullUtteranceCuDNN5@release_gpu  DeviceId=0  timestamping=true  truncated=false  speechTrain=[reader=[nbruttsineachrecurrentiter=2]]  speechTrain=[SGD=[epochSize=2560]]  speechTrain=[SGD=[maxEpochs=2]]  speechTrain=[SGD=[numMBsToShowResult=1]]  modelSelector=2  shareNodeValueMatrices=true
-Changed current directory to C:\jenkins\workspace\CNTK-Test-Windows-W1\Tests\EndToEndTests\Speech\Data
-12/15/2016 08:47:55: -------------------------------------------------------------------
-12/15/2016 08:47:55: Build info: 
+C:\jenkins\workspace\CNTK-Test-Windows-SlaveTest\x64\release\cntk.exe  configFile=C:\jenkins\workspace\CNTK-Test-Windows-SlaveTest\Tests\EndToEndTests\Speech\LSTM/cntk.cntk  currentDirectory=C:\jenkins\workspace\CNTK-Test-Windows-SlaveTest\Tests\EndToEndTests\Speech\Data  RunDir=C:\cygwin64\tmp\cntk-test-20161220071215.50799\Speech\LSTM_FullUtteranceCuDNN5@release_gpu  DataDir=C:\jenkins\workspace\CNTK-Test-Windows-SlaveTest\Tests\EndToEndTests\Speech\Data  ConfigDir=C:\jenkins\workspace\CNTK-Test-Windows-SlaveTest\Tests\EndToEndTests\Speech\LSTM  OutputDir=C:\cygwin64\tmp\cntk-test-20161220071215.50799\Speech\LSTM_FullUtteranceCuDNN5@release_gpu  DeviceId=0  timestamping=true  truncated=false  speechTrain=[reader=[nbruttsineachrecurrentiter=2]]  speechTrain=[SGD=[epochSize=2560]]  speechTrain=[SGD=[maxEpochs=2]]  speechTrain=[SGD=[numMBsToShowResult=1]]  modelSelector=2  shareNodeValueMatrices=true
+Changed current directory to C:\jenkins\workspace\CNTK-Test-Windows-SlaveTest\Tests\EndToEndTests\Speech\Data
+12/20/2016 15:31:06: -------------------------------------------------------------------
+12/20/2016 15:31:06: Build info: 
 
-12/15/2016 08:47:55: 		Built time: Dec 15 2016 06:29:34
-12/15/2016 08:47:55: 		Last modified date: Wed Dec 14 12:53:20 2016
-12/15/2016 08:47:55: 		Build type: Release
-12/15/2016 08:47:55: 		Build target: GPU
-12/15/2016 08:47:55: 		With 1bit-SGD: no
-12/15/2016 08:47:55: 		With ASGD: yes
-12/15/2016 08:47:55: 		Math lib: mkl
-12/15/2016 08:47:55: 		CUDA_PATH: C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0
-12/15/2016 08:47:55: 		CUB_PATH: c:\src\cub-1.4.1
-12/15/2016 08:47:55: 		CUDNN_PATH: C:\local\cudnn-8.0-windows10-x64-v5.1
-12/15/2016 08:47:55: 		Build Branch: HEAD
-12/15/2016 08:47:55: 		Build SHA1: 5f1fabfe95e68af0787193f8849159f824d914d5 (modified)
-12/15/2016 08:47:55: 		Built by svcphil on liana-08-w
-12/15/2016 08:47:55: 		Build Path: C:\jenkins\workspace\CNTK-Build-Windows\Source\CNTK\
-12/15/2016 08:47:55: -------------------------------------------------------------------
-12/15/2016 08:47:55: -------------------------------------------------------------------
-12/15/2016 08:47:55: GPU info:
+12/20/2016 15:31:06: 		Built time: Dec 20 2016 05:52:50
+12/20/2016 15:31:06: 		Last modified date: Tue Dec 20 03:38:53 2016
+12/20/2016 15:31:06: 		Build type: Release
+12/20/2016 15:31:06: 		Build target: GPU
+12/20/2016 15:31:06: 		With 1bit-SGD: no
+12/20/2016 15:31:06: 		With ASGD: yes
+12/20/2016 15:31:06: 		Math lib: mkl
+12/20/2016 15:31:06: 		CUDA_PATH: C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v8.0
+12/20/2016 15:31:06: 		CUB_PATH: c:\src\cub-1.4.1
+12/20/2016 15:31:06: 		CUDNN_PATH: C:\local\cudnn-8.0-windows10-x64-v5.1
+12/20/2016 15:31:06: 		Build Branch: HEAD
+12/20/2016 15:31:06: 		Build SHA1: bbb4406fcb69b190109ec665d8c0a619271f1b24 (modified)
+12/20/2016 15:31:06: 		Built by svcphil on liana-08-w
+12/20/2016 15:31:06: 		Build Path: C:\jenkins\workspace\CNTK-Build-Windows\Source\CNTK\
+12/20/2016 15:31:06: -------------------------------------------------------------------
+12/20/2016 15:31:08: -------------------------------------------------------------------
+12/20/2016 15:31:08: GPU info:
 
-12/15/2016 08:47:55: 		Device[0]: cores = 2496; computeCapability = 5.2; type = "Quadro M4000"; memory = 8192 MB
-12/15/2016 08:47:55: -------------------------------------------------------------------
+12/20/2016 15:31:08: 		Device[0]: cores = 2880; computeCapability = 3.5; type = "GeForce GTX 780 Ti"; memory = 3072 MB
+12/20/2016 15:31:08: 		Device[1]: cores = 2880; computeCapability = 3.5; type = "GeForce GTX 780 Ti"; memory = 3072 MB
+12/20/2016 15:31:08: 		Device[2]: cores = 2880; computeCapability = 3.5; type = "GeForce GTX 780 Ti"; memory = 3072 MB
+12/20/2016 15:31:08: 		Device[3]: cores = 2880; computeCapability = 3.5; type = "GeForce GTX 780 Ti"; memory = 3072 MB
+12/20/2016 15:31:08: -------------------------------------------------------------------
 
 Configuration After Processing and Variable Resolution:
 
 configparameters: cntk.cntk:// Note: These options are overridden from the command line in some test cases.=true
 configparameters: cntk.cntk:command=speechCreate:speechTrain
-configparameters: cntk.cntk:ConfigDir=C:\jenkins\workspace\CNTK-Test-Windows-W1\Tests\EndToEndTests\Speech\LSTM
-configparameters: cntk.cntk:currentDirectory=C:\jenkins\workspace\CNTK-Test-Windows-W1\Tests\EndToEndTests\Speech\Data
-configparameters: cntk.cntk:DataDir=C:\jenkins\workspace\CNTK-Test-Windows-W1\Tests\EndToEndTests\Speech\Data
+configparameters: cntk.cntk:ConfigDir=C:\jenkins\workspace\CNTK-Test-Windows-SlaveTest\Tests\EndToEndTests\Speech\LSTM
+configparameters: cntk.cntk:currentDirectory=C:\jenkins\workspace\CNTK-Test-Windows-SlaveTest\Tests\EndToEndTests\Speech\Data
+configparameters: cntk.cntk:DataDir=C:\jenkins\workspace\CNTK-Test-Windows-SlaveTest\Tests\EndToEndTests\Speech\Data
 configparameters: cntk.cntk:deviceId=0
 configparameters: cntk.cntk:frameMode=false
-configparameters: cntk.cntk:modelPath=C:\Users\svcphil\AppData\Local\Temp\cntk-test-20161215082658.690476\Speech\LSTM_FullUtteranceCuDNN5@release_gpu/models/cntkSpeech.dnn
+configparameters: cntk.cntk:modelPath=C:\cygwin64\tmp\cntk-test-20161220071215.50799\Speech\LSTM_FullUtteranceCuDNN5@release_gpu/models/cntkSpeech.dnn
 configparameters: cntk.cntk:modelSelector=2
-configparameters: cntk.cntk:OutputDir=C:\Users\svcphil\AppData\Local\Temp\cntk-test-20161215082658.690476\Speech\LSTM_FullUtteranceCuDNN5@release_gpu
+configparameters: cntk.cntk:OutputDir=C:\cygwin64\tmp\cntk-test-20161220071215.50799\Speech\LSTM_FullUtteranceCuDNN5@release_gpu
 configparameters: cntk.cntk:parallelTrain=false
 configparameters: cntk.cntk:precision=float
-configparameters: cntk.cntk:RunDir=C:\Users\svcphil\AppData\Local\Temp\cntk-test-20161215082658.690476\Speech\LSTM_FullUtteranceCuDNN5@release_gpu
+configparameters: cntk.cntk:RunDir=C:\cygwin64\tmp\cntk-test-20161220071215.50799\Speech\LSTM_FullUtteranceCuDNN5@release_gpu
 configparameters: cntk.cntk:shareNodeValueMatrices=true
 configparameters: cntk.cntk:speechCreate={
     action = "edit"
-    outputModelPath = "C:\Users\svcphil\AppData\Local\Temp\cntk-test-20161215082658.690476\Speech\LSTM_FullUtteranceCuDNN5@release_gpu/models/cntkSpeech.dnn.initial"
+    outputModelPath = "C:\cygwin64\tmp\cntk-test-20161220071215.50799\Speech\LSTM_FullUtteranceCuDNN5@release_gpu/models/cntkSpeech.dnn.initial"
     BrainScriptNetworkBuilder = {
         useLayerNorm = false
         // dimensions (needed for both model and readers)
@@ -170,7 +173,7 @@ model = models[2]
 
 configparameters: cntk.cntk:speechTrain={
     action = "train"
-    BrainScriptNetworkBuilder = (BS.Network.Load("C:\Users\svcphil\AppData\Local\Temp\cntk-test-20161215082658.690476\Speech\LSTM_FullUtteranceCuDNN5@release_gpu/models/cntkSpeech.dnn.initial"))
+    BrainScriptNetworkBuilder = (BS.Network.Load("C:\cygwin64\tmp\cntk-test-20161220071215.50799\Speech\LSTM_FullUtteranceCuDNN5@release_gpu/models/cntkSpeech.dnn.initial"))
     SGD = {
         epochSize = 20480 ; maxEpochs = 4 ; minibatchSize = 20
         learningRatesPerMB = 0.5 ; momentumAsTimeConstant = 2500
@@ -182,22 +185,22 @@ configparameters: cntk.cntk:speechTrain={
         randomize = "auto" ; readMethod = "blockRandomize"
         nbruttsineachrecurrentiter = 32
         miniBatchMode = "partial" ; verbosity = 0 ; useMersenneTwisterRand = true
-        features = { dim =      363 ; type      = "real"     ; scpFile = "C:\jenkins\workspace\CNTK-Test-Windows-W1\Tests\EndToEndTests\Speech\Data/glob_0000.scp" ; }
-        labels   = { labelDim = 132 ; labelType = "category" ; mlfFile = "C:\jenkins\workspace\CNTK-Test-Windows-W1\Tests\EndToEndTests\Speech\Data/glob_0000.mlf" ; labelMappingFile = "C:\jenkins\workspace\CNTK-Test-Windows-W1\Tests\EndToEndTests\Speech\Data/state.list" }
+        features = { dim =      363 ; type      = "real"     ; scpFile = "C:\jenkins\workspace\CNTK-Test-Windows-SlaveTest\Tests\EndToEndTests\Speech\Data/glob_0000.scp" ; }
+        labels   = { labelDim = 132 ; labelType = "category" ; mlfFile = "C:\jenkins\workspace\CNTK-Test-Windows-SlaveTest\Tests\EndToEndTests\Speech\Data/glob_0000.mlf" ; labelMappingFile = "C:\jenkins\workspace\CNTK-Test-Windows-SlaveTest\Tests\EndToEndTests\Speech\Data/state.list" }
     }
 } [reader=[nbruttsineachrecurrentiter=2]] [SGD=[epochSize=2560]] [SGD=[maxEpochs=2]] [SGD=[numMBsToShowResult=1]]
 
 configparameters: cntk.cntk:timestamping=true
 configparameters: cntk.cntk:traceLevel=1
 configparameters: cntk.cntk:truncated=false
-12/15/2016 08:47:55: Commands: speechCreate speechTrain
-12/15/2016 08:47:55: precision = "float"
+12/20/2016 15:31:08: Commands: speechCreate speechTrain
+12/20/2016 15:31:08: precision = "float"
 
-12/15/2016 08:47:55: ##############################################################################
-12/15/2016 08:47:55: #                                                                            #
-12/15/2016 08:47:55: # speechCreate command (edit action)                                         #
-12/15/2016 08:47:55: #                                                                            #
-12/15/2016 08:47:55: ##############################################################################
+12/20/2016 15:31:08: ##############################################################################
+12/20/2016 15:31:08: #                                                                            #
+12/20/2016 15:31:08: # speechCreate command (edit action)                                         #
+12/20/2016 15:31:08: #                                                                            #
+12/20/2016 15:31:08: ##############################################################################
 
 Node '<placeholder>' (LearnableParameter operation): Initializating Parameter[132 x 0] as heUniform later when dimensions are fully known.
 Node '<placeholder>' (LearnableParameter operation): Initializating Parameter[0 x 0] as heNormal later when dimensions are fully known.
@@ -257,22 +260,22 @@ Validating network, final pass.
 
 Post-processing network complete.
 
-12/15/2016 08:47:56: 
-Model with 28 nodes saved as 'C:\Users\svcphil\AppData\Local\Temp\cntk-test-20161215082658.690476\Speech\LSTM_FullUtteranceCuDNN5@release_gpu/models/cntkSpeech.dnn.initial'.
+12/20/2016 15:31:09: 
+Model with 28 nodes saved as 'C:\cygwin64\tmp\cntk-test-20161220071215.50799\Speech\LSTM_FullUtteranceCuDNN5@release_gpu/models/cntkSpeech.dnn.initial'.
 
-12/15/2016 08:47:56: Action "edit" complete.
+12/20/2016 15:31:09: Action "edit" complete.
 
 
-12/15/2016 08:47:56: ##############################################################################
-12/15/2016 08:47:56: #                                                                            #
-12/15/2016 08:47:56: # speechTrain command (train action)                                         #
-12/15/2016 08:47:56: #                                                                            #
-12/15/2016 08:47:56: ##############################################################################
+12/20/2016 15:31:09: ##############################################################################
+12/20/2016 15:31:09: #                                                                            #
+12/20/2016 15:31:09: # speechTrain command (train action)                                         #
+12/20/2016 15:31:09: #                                                                            #
+12/20/2016 15:31:09: ##############################################################################
 
 parallelTrain option is not enabled. ParallelTrain config will be ignored.
-12/15/2016 08:47:56: 
+12/20/2016 15:31:09: 
 Creating virgin network.
-Load: Loading model file: C:\Users\svcphil\AppData\Local\Temp\cntk-test-20161215082658.690476\Speech\LSTM_FullUtteranceCuDNN5@release_gpu/models/cntkSpeech.dnn.initial
+Load: Loading model file: C:\cygwin64\tmp\cntk-test-20161220071215.50799\Speech\LSTM_FullUtteranceCuDNN5@release_gpu/models/cntkSpeech.dnn.initial
 Post-processing network...
 
 6 roots:
@@ -324,17 +327,17 @@ Validating network, final pass.
 
 Post-processing network complete.
 
-reading script file C:\jenkins\workspace\CNTK-Test-Windows-W1\Tests\EndToEndTests\Speech\Data/glob_0000.scp ... 948 entries
-total 132 state names in state list C:\jenkins\workspace\CNTK-Test-Windows-W1\Tests\EndToEndTests\Speech\Data/state.list
-htkmlfreader: reading MLF file C:\jenkins\workspace\CNTK-Test-Windows-W1\Tests\EndToEndTests\Speech\Data/glob_0000.mlf ... total 948 entries
+reading script file C:\jenkins\workspace\CNTK-Test-Windows-SlaveTest\Tests\EndToEndTests\Speech\Data/glob_0000.scp ... 948 entries
+total 132 state names in state list C:\jenkins\workspace\CNTK-Test-Windows-SlaveTest\Tests\EndToEndTests\Speech\Data/state.list
+htkmlfreader: reading MLF file C:\jenkins\workspace\CNTK-Test-Windows-SlaveTest\Tests\EndToEndTests\Speech\Data/glob_0000.mlf ... total 948 entries
 ...............................................................................................feature set 0: 252734 frames in 948 out of 948 utterances
 label set 0: 129 classes
 minibatchutterancesource: 948 utterances grouped into 3 chunks, av. chunk size: 316.0 utterances, 84244.7 frames
-12/15/2016 08:47:56: 
+12/20/2016 15:31:10: 
 Model has 28 nodes. Using GPU 0.
 
-12/15/2016 08:47:56: Training criterion:   ce = SumElements
-12/15/2016 08:47:56: Evaluation criterion: err = SumElements
+12/20/2016 15:31:10: Training criterion:   ce = SumElements
+12/20/2016 15:31:10: Evaluation criterion: err = SumElements
 
 
 Allocating matrices for forward and/or backward propagation.
@@ -353,6 +356,11 @@ Memory Sharing: Out of 38 matrices, 24 are shared as 7, and 14 are not shared.
 	  z.x.PlusArgs[0] : [132 x *1] (gradient)
 	  z.x._ : [33 x *1]
 	  z.x.weights : [256 x 14648] (gradient) }
+	{ realFeatures : [363 x *1]
+	  z.x : [512 x *1]
+	  z.x._.ElementTimesArgs[0] : [33 x *1] }
+	{ modelUsingCuDNN5.arrayOfFunctions[2].arrayOfFunctions[0].W : [132 x 512] (gradient)
+	  z : [132 x *1] }
 	{ ce.matrix : [1 x *1] (gradient)
 	  ce.matrix.MinusArgs[1] : [1 x *1]
 	  err.matrix.MinusArgs[1] : [1 x *1]
@@ -360,53 +368,48 @@ Memory Sharing: Out of 38 matrices, 24 are shared as 7, and 14 are not shared.
 	  z.x : [512 x *1] (gradient) }
 	{ ce.matrix : [1 x *1]
 	  err.matrix.MinusArgs[1].rightMatrix : [132 x *1] }
-	{ realFeatures : [363 x *1]
-	  z.x : [512 x *1]
-	  z.x._.ElementTimesArgs[0] : [33 x *1] }
-	{ modelUsingCuDNN5.arrayOfFunctions[2].arrayOfFunctions[0].W : [132 x 512] (gradient)
-	  z : [132 x *1] }
 
 
-12/15/2016 08:47:56: Training 3817604 parameters in 3 out of 3 parameter tensors and 10 nodes with gradient:
+12/20/2016 15:31:10: Training 3817604 parameters in 3 out of 3 parameter tensors and 10 nodes with gradient:
 
-12/15/2016 08:47:56: 	Node 'modelUsingCuDNN5.arrayOfFunctions[2].arrayOfFunctions[0].W' (LearnableParameter operation) : [132 x 512]
-12/15/2016 08:47:56: 	Node 'modelUsingCuDNN5.arrayOfFunctions[2].arrayOfFunctions[0].b' (LearnableParameter operation) : [132]
-12/15/2016 08:47:56: 	Node 'z.x.weights' (LearnableParameter operation) : [256 x 14648]
+12/20/2016 15:31:10: 	Node 'modelUsingCuDNN5.arrayOfFunctions[2].arrayOfFunctions[0].W' (LearnableParameter operation) : [132 x 512]
+12/20/2016 15:31:10: 	Node 'modelUsingCuDNN5.arrayOfFunctions[2].arrayOfFunctions[0].b' (LearnableParameter operation) : [132]
+12/20/2016 15:31:10: 	Node 'z.x.weights' (LearnableParameter operation) : [256 x 14648]
 
 
-12/15/2016 08:47:56: Precomputing --> 3 PreCompute nodes found.
+12/20/2016 15:31:10: Precomputing --> 3 PreCompute nodes found.
 
-12/15/2016 08:47:56: 	z.x._.mean = Mean()
-12/15/2016 08:47:56: 	z.x._.invStdDev = InvStdDev()
-12/15/2016 08:47:56: 	logPrior._ = Mean()
+12/20/2016 15:31:10: 	z.x._.mean = Mean()
+12/20/2016 15:31:10: 	z.x._.invStdDev = InvStdDev()
+12/20/2016 15:31:10: 	logPrior._ = Mean()
 minibatchiterator: epoch 0: frames [0..252734] (first utterance at frame 0), data subset 0 of 1, with 1 datapasses
 requiredata: determined feature kind as 33-dimensional 'USER' with frame shift 10.0 ms
 
-12/15/2016 08:47:57: Precomputing --> Completed.
+12/20/2016 15:31:11: Precomputing --> Completed.
 
 
-12/15/2016 08:47:58: Starting Epoch 1: learning rate per sample = 0.025000  effective momentum = 0.992031  momentum as time constant = 2499.8 samples
+12/20/2016 15:31:11: Starting Epoch 1: learning rate per sample = 0.025000  effective momentum = 0.992031  momentum as time constant = 2499.8 samples
 minibatchiterator: epoch 0: frames [0..2560] (first utterance at frame 0), data subset 0 of 1, with 1 datapasses
 
-12/15/2016 08:47:58: Starting minibatch loop.
-12/15/2016 08:47:58:  Epoch[ 1 of 2]-Minibatch[   1-   1, 0.78%]: ce = 4.88343525 * 886; err = 0.99435666 * 886; time = 0.6582s; samplesPerSecond = 1346.1
-12/15/2016 08:47:58:  Epoch[ 1 of 2]-Minibatch[   2-   2, 1.56%]: ce = 4.54323882 * 226; err = 0.76106195 * 226; time = 0.0696s; samplesPerSecond = 3246.8
-12/15/2016 08:47:58:  Epoch[ 1 of 2]-Minibatch[   3-   3, 2.34%]: ce = 4.22169361 * 526; err = 0.82889734 * 526; time = 0.1284s; samplesPerSecond = 4097.6
-12/15/2016 08:47:59:  Epoch[ 1 of 2]-Minibatch[   4-   4, 3.13%]: ce = 4.44046066 * 946; err = 0.89217759 * 946; time = 0.2822s; samplesPerSecond = 3352.1
-12/15/2016 08:47:59: Finished Epoch[ 1 of 2]: [Training] ce = 4.55680427 * 2584; err = 0.90286378 * 2584; totalSamplesSeen = 2584; learningRatePerSample = 0.025; epochTime=1.14021s
-12/15/2016 08:47:59: SGD: Saving checkpoint model 'C:\Users\svcphil\AppData\Local\Temp\cntk-test-20161215082658.690476\Speech\LSTM_FullUtteranceCuDNN5@release_gpu/models/cntkSpeech.dnn.1'
+12/20/2016 15:31:11: Starting minibatch loop.
+12/20/2016 15:31:12:  Epoch[ 1 of 2]-Minibatch[   1-   1, 0.78%]: ce = 4.88338290 * 886; err = 0.99661400 * 886; time = 0.7541s; samplesPerSecond = 1174.9
+12/20/2016 15:31:12:  Epoch[ 1 of 2]-Minibatch[   2-   2, 1.56%]: ce = 4.54264899 * 226; err = 0.76106195 * 226; time = 0.1041s; samplesPerSecond = 2171.5
+12/20/2016 15:31:12:  Epoch[ 1 of 2]-Minibatch[   3-   3, 2.34%]: ce = 4.22057502 * 526; err = 0.82889734 * 526; time = 0.2193s; samplesPerSecond = 2398.3
+12/20/2016 15:31:13:  Epoch[ 1 of 2]-Minibatch[   4-   4, 3.13%]: ce = 4.44286129 * 946; err = 0.89217759 * 946; time = 0.4480s; samplesPerSecond = 2111.4
+12/20/2016 15:31:13: Finished Epoch[ 1 of 2]: [Training] ce = 4.55738590 * 2584; err = 0.90363777 * 2584; totalSamplesSeen = 2584; learningRatePerSample = 0.025; epochTime=1.52781s
+12/20/2016 15:31:13: SGD: Saving checkpoint model 'C:\cygwin64\tmp\cntk-test-20161220071215.50799\Speech\LSTM_FullUtteranceCuDNN5@release_gpu/models/cntkSpeech.dnn.1'
 
-12/15/2016 08:47:59: Starting Epoch 2: learning rate per sample = 0.025000  effective momentum = 0.992031  momentum as time constant = 2499.8 samples
+12/20/2016 15:31:13: Starting Epoch 2: learning rate per sample = 0.025000  effective momentum = 0.992031  momentum as time constant = 2499.8 samples
 minibatchiterator: epoch 1: frames [2560..5120] (first utterance at frame 2584), data subset 0 of 1, with 1 datapasses
 
-12/15/2016 08:47:59: Starting minibatch loop.
-12/15/2016 08:47:59:  Epoch[ 2 of 2]-Minibatch[   1-   1, 0.78%]: ce = 4.27901739 * 594; err = 0.91582492 * 594; time = 0.1401s; samplesPerSecond = 4239.1
-12/15/2016 08:47:59:  Epoch[ 2 of 2]-Minibatch[   2-   2, 1.56%]: ce = 4.75047310 * 386; err = 0.95336788 * 386; time = 0.0990s; samplesPerSecond = 3900.4
-12/15/2016 08:48:00:  Epoch[ 2 of 2]-Minibatch[   3-   3, 2.34%]: ce = 4.02075195 * 884; err = 0.89705882 * 884; time = 0.2123s; samplesPerSecond = 4164.7
-12/15/2016 08:48:00:  Epoch[ 2 of 2]-Minibatch[   4-   4, 3.13%]: ce = 4.44196989 * 946; err = 0.91014799 * 946; time = 0.2316s; samplesPerSecond = 4084.7
-12/15/2016 08:48:00: Finished Epoch[ 2 of 2]: [Training] ce = 4.31739046 * 2810; err = 0.91316726 * 2810; totalSamplesSeen = 5394; learningRatePerSample = 0.025; epochTime=0.684461s
-12/15/2016 08:48:00: SGD: Saving checkpoint model 'C:\Users\svcphil\AppData\Local\Temp\cntk-test-20161215082658.690476\Speech\LSTM_FullUtteranceCuDNN5@release_gpu/models/cntkSpeech.dnn'
+12/20/2016 15:31:13: Starting minibatch loop.
+12/20/2016 15:31:14:  Epoch[ 2 of 2]-Minibatch[   1-   1, 0.78%]: ce = 4.28727666 * 594; err = 0.91582492 * 594; time = 0.2407s; samplesPerSecond = 2467.6
+12/20/2016 15:31:14:  Epoch[ 2 of 2]-Minibatch[   2-   2, 1.56%]: ce = 4.73987702 * 386; err = 0.94818653 * 386; time = 0.1655s; samplesPerSecond = 2331.8
+12/20/2016 15:31:14:  Epoch[ 2 of 2]-Minibatch[   3-   3, 2.34%]: ce = 4.02257527 * 884; err = 0.89705882 * 884; time = 0.3554s; samplesPerSecond = 2487.3
+12/20/2016 15:31:15:  Epoch[ 2 of 2]-Minibatch[   4-   4, 3.13%]: ce = 4.43765485 * 946; err = 0.91014799 * 946; time = 0.4267s; samplesPerSecond = 2216.9
+12/20/2016 15:31:15: Finished Epoch[ 2 of 2]: [Training] ce = 4.31680174 * 2810; err = 0.91245552 * 2810; totalSamplesSeen = 5394; learningRatePerSample = 0.025; epochTime=1.19148s
+12/20/2016 15:31:15: SGD: Saving checkpoint model 'C:\cygwin64\tmp\cntk-test-20161220071215.50799\Speech\LSTM_FullUtteranceCuDNN5@release_gpu/models/cntkSpeech.dnn'
 
-12/15/2016 08:48:00: Action "train" complete.
+12/20/2016 15:31:15: Action "train" complete.
 
-12/15/2016 08:48:00: __COMPLETED__
+12/20/2016 15:31:15: __COMPLETED__
