@@ -16,10 +16,8 @@
 #include <map>
 #include <vector>
 #include <random>
-
 #include <boost/random/uniform_int_distribution.hpp>
 #include <boost/random/piecewise_constant_distribution.hpp>
-
 
 namespace Microsoft { namespace MSR { namespace CNTK {
 

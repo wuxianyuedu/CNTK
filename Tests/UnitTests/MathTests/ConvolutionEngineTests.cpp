@@ -8,7 +8,6 @@
 #include <random>
 #include <numeric>
 #include <boost/random/normal_distribution.hpp>
-
 #include <boost/random/uniform_int_distribution.hpp>
 #include <boost/random/uniform_real_distribution.hpp>
 #include "../../../Source/Math/Matrix.h"

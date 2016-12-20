@@ -4,9 +4,7 @@
 //
 
 #include "TrainingNodes.h"
-
 #include <boost/random/uniform_real_distribution.hpp>
-
 
 namespace Microsoft { namespace MSR { namespace CNTK {
 

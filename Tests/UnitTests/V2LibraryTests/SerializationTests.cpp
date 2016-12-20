@@ -4,7 +4,6 @@
 //
 
 #include <boost/random/uniform_real_distribution.hpp>
-
 #include "CNTKLibrary.h"
 #include "PrimitiveOpType.h"
 #include "Common.h"

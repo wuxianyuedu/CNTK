@@ -1046,8 +1046,7 @@ void CPUMatrix<ElemType>::SetGaussianRandomValue(const ElemType mean, const Elem
 
     auto& us = *this;
 
-    std::mt19937_64 generator;
-    generator.seed(seed == USE_TIME_BASED_SEED ? (unsigned long) time(NULL) : seed);
+    std::mt19937_64 generator(seed == USE_TIME_BASED_SEED ? (unsigned long) time(NULL) : seed);
     boost::random::normal_distribution<ElemType> r(mean, sigma);
 
     // #pragma omp parallel for   // is it thread safe?
