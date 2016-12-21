@@ -113,35 +113,48 @@ void BlockRandomizer::PrepareNewSweepIfNeeded(size_t samplePosition)
 }
 
 // Gets next sequences not exceeding sampleCount.
-Sequences BlockRandomizer::GetNextSequences(size_t sampleCount)
+Sequences BlockRandomizer::GetNextSequences(size_t numSamplesToLoad)
 {
     // Get next sequence descriptions.
     Sequences result;
     size_t numSamplesLoaded = 0;
     do
     {
-        numSamplesLoaded += LoadSequenceData(sampleCount - numSamplesLoaded, result);
+        assert(numSamplesToLoad > numSamplesLoaded);
+        bool atTheSweepBoundary = result.m_endOfSweep;
+        // in case when we continue filling up a minibatch that crosses a sweep boundary, 
+        // make sure that it does not exceed the required number of samples. Set the atLeastOnceSequenceNeeded
+        // flag to false.
+        size_t sampleCount = LoadSequenceData(numSamplesToLoad - numSamplesLoaded, result, !atTheSweepBoundary);
+
+        if (atTheSweepBoundary && sampleCount == 0) 
+        {
+            break;
+        }
+
+        numSamplesLoaded += sampleCount;
+
     } while (m_config.m_allowMinibatchesToCrossSweepBoundaries && 
              !result.m_endOfEpoch &&
              result.m_endOfSweep &&
-             sampleCount > numSamplesLoaded);
+             numSamplesToLoad > numSamplesLoaded);
 
     return result;
 }
 
-size_t BlockRandomizer::LoadSequenceData(size_t sampleCount, Sequences& sequences)
+size_t BlockRandomizer::LoadSequenceData(size_t sampleCount, Sequences& sequences, bool atLeastOneSequenceNeeded)
 {
     std::vector<RandomizedSequenceDescription> descriptions;
     ClosedOpenChunkInterval windowRange;
     size_t numSamples; // actual number of samples to load (filled in from the sequence descriptions) 
     bool endOfSweep, endOfEpoch;
-    std::tie(endOfSweep, endOfEpoch, numSamples) = GetNextSequenceDescriptions(sampleCount, descriptions, windowRange);
+    std::tie(endOfSweep, endOfEpoch, numSamples) = GetNextSequenceDescriptions(sampleCount, descriptions, windowRange, atLeastOneSequenceNeeded);
     sequences.m_endOfSweep |= endOfSweep;
     sequences.m_endOfEpoch |= endOfEpoch;
 
     if (numSamples == 0)
     {
-        assert(sequences.m_endOfEpoch);
+        assert(!atLeastOneSequenceNeeded || sequences.m_endOfEpoch);
         return numSamples;
     }
 
@@ -179,7 +192,7 @@ size_t BlockRandomizer::LoadSequenceData(size_t sampleCount, Sequences& sequence
         offset = data.front().size();
         for (auto& sequenceDataVector : data)
         {
-            // make that all streams contain the same number of sequences
+            // make sure that all streams contain the same number of sequences
             assert(sequenceDataVector.size() == offset); 
             sequenceDataVector.resize(offset + decimated.size());
         }
@@ -197,7 +210,8 @@ size_t BlockRandomizer::LoadSequenceData(size_t sampleCount, Sequences& sequence
         it->second->GetSequence(description.m_id, sequenceData);
         for (int j = 0; j < m_streams.size(); ++j)
         {
-            data[j].at(offset + i) = sequenceData[j];
+            assert(offset + i < data[j].size());
+            data[j][offset + i] = sequenceData[j];
         }
     };
 
@@ -224,7 +238,7 @@ size_t BlockRandomizer::LoadSequenceData(size_t sampleCount, Sequences& sequence
 
 // Get next sequence descriptions that do not exceed sample count.
 // Returns true if epoch end is reached.
-std::tuple<bool, bool, size_t> BlockRandomizer::GetNextSequenceDescriptions(size_t sampleCount, std::vector<RandomizedSequenceDescription>& result, ClosedOpenChunkInterval& windowRange)
+std::tuple<bool, bool, size_t> BlockRandomizer::GetNextSequenceDescriptions(size_t sampleCount, std::vector<RandomizedSequenceDescription>& result, ClosedOpenChunkInterval& windowRange, bool atLeastOneSequenceNeeded)
 {
     assert(sampleCount != 0);
 
@@ -248,7 +262,7 @@ std::tuple<bool, bool, size_t> BlockRandomizer::GetNextSequenceDescriptions(size
     assert(sampleCount != 0);
 
     // Randomizing sequences
-    result = m_sequenceRandomizer->GetNextSequenceDescriptions(sampleCount, windowRange);
+    result = m_sequenceRandomizer->GetNextSequenceDescriptions(sampleCount, windowRange, atLeastOneSequenceNeeded);
 
     size_t minibatchSize = 0; // the actual size of the current minibatch in samples
     for (const auto& sequence : result)

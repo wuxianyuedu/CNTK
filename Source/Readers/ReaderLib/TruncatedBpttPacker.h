@@ -8,17 +8,12 @@
 #include "Reader.h"
 #include "MemoryProvider.h"
 #include "PackerBase.h"
-#include <deque>
 
 namespace Microsoft { namespace MSR { namespace CNTK {
 
 // Represents a buffer of prepared sequences from which the minibatch is created.
 struct SequenceBuffer;
 typedef std::shared_ptr<SequenceBuffer> SequenceBufferPtr;
-
-// Contains a few  additional bits for each sequence in the buffer 
-// (bits are identical for all streams, no need to replicate them for each stream).
-struct SequenceMetadata;
 
 // A bptt packer that densely packs samples in parallel for GPU consumptions.
 // TODO: Currently supports only packing of streams with sequences of equal length.

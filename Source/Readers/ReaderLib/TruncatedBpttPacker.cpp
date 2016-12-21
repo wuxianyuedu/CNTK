@@ -170,7 +170,7 @@ void TruncatedBPTTPacker::SetConfiguration(const ReaderConfiguration& config, co
         m_sequenceBufferPerStream.clear();
 
         // Preparing the buffers. 
-        for (int j = 0; j < m_streamBuffers.size(); ++j) // swap the loops
+        for (int j = 0; j < m_streamBuffers.size(); ++j)
             for (int i = 0; i < m_outputStreamDescriptions.size(); ++i)
             {
                 const auto& stream = m_outputStreamDescriptions[i];

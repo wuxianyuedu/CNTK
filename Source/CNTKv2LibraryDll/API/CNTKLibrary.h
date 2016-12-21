@@ -3488,8 +3488,8 @@ namespace CNTK
             : MinibatchData(value, numSamples, numSamples, sweepEnd)
         {}
 
-        MinibatchData(ValuePtr value, size_t numSequnces, size_t numSamples, bool sweepEnd) 
-            : data(value), numberOfSequences(numSequnces), numberOfSamples(numSamples), sweepEnd(sweepEnd) 
+        MinibatchData(ValuePtr value, size_t numSequences, size_t numSamples, bool sweepEnd) 
+            : data(value), numberOfSequences(numSequences), numberOfSamples(numSamples), sweepEnd(sweepEnd) 
         {}
 
         ValuePtr data;

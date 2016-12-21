@@ -779,9 +779,7 @@ def sanitize_var_map(op_arguments, arguments, precision=None,
                 raise KeyError("no input with the name '%s' was found.  Available: %s" % (
                     var, ", ".join(var_name_map.keys())))
 
-        if isinstance(batch, MinibatchData):
-            batch = batch.m_data
-        elif not isinstance(batch, cntk_py.Value):
+        if not (isinstance(batch, MinibatchData) or isinstance(batch, cntk_py.Value)):
             batch = sanitize_batch(var, batch, seq_starts, precision, device)
 
         var_map[var] = batch

@@ -82,15 +82,18 @@ private:
     // Load data for chunks if needed.
     void LoadDataChunks(const ClosedOpenChunkInterval& windowRange);
 
-    // Load actual sequence data up to the specified sample count,
+    // Load actual sequence data up to the specified sample count 
+    // (or at least one sequence when atLeastOneSequenceNeeded is true),
     // returns the total number of loaded samples.
-    size_t LoadSequenceData(size_t sampleCount, Sequences& sequence);
+    size_t LoadSequenceData(size_t sampleCount, Sequences& sequence, bool atLeastOneSequenceNeeded);
 
-    // Get next sequence descriptions that do not exceed sample count.
+    // Gets the next sequence descriptions with the total number of samples not exceeding 
+    // the sample count, when atLeastOneSequenceNeeded is false. Otherwise (when atLeastOneSequenceNeeded is true), 
+    // returns at least one sequence description even when its length is greater than the required sample count.
     // Returns a tuple containing "end of sweep", "end of epoch" flags and
     // the total number of samples aggregated over all sequence descriptions 
     // in the 'result' vector.
-    std::tuple<bool, bool, size_t> GetNextSequenceDescriptions(size_t sampleCount, std::vector<RandomizedSequenceDescription>& result, ClosedOpenChunkInterval& windowRange);
+    std::tuple<bool, bool, size_t> GetNextSequenceDescriptions(size_t sampleCount, std::vector<RandomizedSequenceDescription>& result, ClosedOpenChunkInterval& windowRange, bool atLeastOneSequenceNeeded);
 
     // Decimates sequence descriptions and loads chunks of data.
     void Decimate(const std::vector<RandomizedSequenceDescription>& all, std::vector<RandomizedSequenceDescription>& decimated);

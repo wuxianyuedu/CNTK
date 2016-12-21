@@ -24,28 +24,28 @@ class MinibatchData(cntk_py.MinibatchData, ArrayMixin):
         '''
         The number of sequences in this minibatch
         '''
-        return self.m_num_sequences
+        return self.number_of_sequences
 
     @property
     def num_samples(self):
         '''
         The number of samples in this minibatch
         '''
-        return self.m_num_samples
+        return self.number_of_samples
 
     @property
     def value(self):
         '''
         The value of the minibatch as a NumPy array.
         '''
-        return value_to_seq(self.m_data)
+        return value_to_seq(self.data)
 
     @property
     def shape(self):
         '''
         The shape of the data in this minibatch as tuple.
         '''
-        return self.m_data.shape().dimensions()
+        return self.data.shape().dimensions()
 
     @property
     def mask(self):
@@ -54,14 +54,23 @@ class MinibatchData(cntk_py.MinibatchData, ArrayMixin):
         sequence, `1` marks a sequence element as valid, and `0` marks it as
         invalid.
         '''
-        return self.m_data.mask().to_numpy()
+        return self.data.mask().to_numpy()
+
+    @property
+    def end_of_sweep(self):
+        '''
+        Indicates whether the data in this minibatch is comes from a sweep end
+        or crosses a sweep boundary (and as a result includes data from 
+        different sweeps).
+        '''
+        return self.data.is_sparse()
 
     @property
     def is_sparse(self):
         '''
         Whether the data in this minibatch is sparse.
         '''
-        return self.m_data.is_sparse()
+        return self.data.is_sparse()
 
     def __len__(self):
         return self.num_sequences

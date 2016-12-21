@@ -73,7 +73,7 @@ namespace CNTK
     CompositeMinibatchSource::CompositeMinibatchSource(const Dictionary& configuration)
         : m_epochEndReached(false),
           m_prevMinibatchSize(0),
-          m_epochSize(MinibatchSource::InfinitelyRepeat),
+          m_maxNumSamplesToRead(MinibatchSource::InfinitelyRepeat),
           m_truncationLength(0),
           m_numWorkers(1),
           m_workerRank(0),
@@ -133,7 +133,7 @@ namespace CNTK
 
         const wchar_t* epochSizeConfigurationKey = L"epochSize";
         if (augmentedConfiguration.Contains(epochSizeConfigurationKey))
-            m_epochSize = augmentedConfiguration[epochSizeConfigurationKey].Value<size_t>();
+            m_maxNumSamplesToRead = augmentedConfiguration[epochSizeConfigurationKey].Value<size_t>();
 
         const wchar_t* truncatedConfigurationKey = L"truncated";
         const wchar_t* truncationLengthConfigurationKey = L"truncationLength";
@@ -220,18 +220,18 @@ namespace CNTK
                 epochConfig.m_truncationSize = m_truncationLength;
                 epochConfig.m_allowMinibatchesToCrossSweepBoundaries = true;
 
-                if (m_epochSize == MinibatchSource::FullDataSweep) 
+                if (m_maxNumSamplesToRead == MinibatchSource::FullDataSweep)
                 {
                     epochConfig.m_totalEpochSizeInSamples = Microsoft::MSR::CNTK::requestDataSize;
                 }
-                else if (m_epochSize == MinibatchSource::InfinitelyRepeat)
+                else if (m_maxNumSamplesToRead == MinibatchSource::InfinitelyRepeat)
                 {
                     // Setting big value, but not the max in order to aviod bit overflow.
-                    m_epochSize = std::numeric_limits<size_t>::max()/2;
+                    epochConfig.m_totalEpochSizeInSamples = std::numeric_limits<size_t>::max() / 2;
                 }
                 else 
                 {
-                    epochConfig.m_totalEpochSizeInSamples = m_epochSize;
+                    epochConfig.m_totalEpochSizeInSamples = m_maxNumSamplesToRead;
                 }
 
                 epochConfig.m_epochIndex = 0;
