@@ -54,7 +54,7 @@ class MinibatchData(cntk_py.MinibatchData, ArrayMixin):
         sequence, `1` marks a sequence element as valid, and `0` marks it as
         invalid.
         '''
-        return self.data.mask().to_numpy()
+        return self.data.mask().to_ndarray()
 
     @property
     def end_of_sweep(self):
@@ -169,7 +169,7 @@ class MinibatchSource(cntk_py.MinibatchSource):
 
         if input_map:
             if not mb:
-                return None
+                return {}
             else:
                 return { key : mb[value] for (key, value) in input_map.items() }
         else:
