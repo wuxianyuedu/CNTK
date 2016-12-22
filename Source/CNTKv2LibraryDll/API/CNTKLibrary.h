@@ -3178,6 +3178,8 @@ namespace CNTK
     typedef TrainingParameterPerSampleSchedule<double> MomentumPerSampleSchedule;
     typedef TrainingParameterPerMinibatchSchedule<double> MomentumPerMinibatchSchedule;
 
+    typedef TrainingParameterSchedule<size_t> MinibatchSizeSchedule;
+
     ///
     /// This class allows to specify momentum as time constant in place of momentum per sample in 
     /// all of Learners factory methods. The specified values are then automatically converted into 
@@ -3583,14 +3585,6 @@ namespace CNTK
         ///
         CNTK_API size_t TotalNumberOfSamplesSeen() const;
 
-        ///
-        // Trains the model with data continuously fed by the specified 'reader' and duration of 
-        // training determined by the specified TrainingControl object
-        // The 'modelArgumentsToMinibatchSourceStreamMap' argument specifies a 1-1 mapping between the model's argument variables 
-        // and the reader stream that corresponds to that argument
-        ///
-        void Train(MinibatchSourcePtr reader, const std::unordered_map<Variable, StreamInformation>& modelArgumentsToMinibatchSourceStreamMap, TrainingControlPtr controller);
-
     private:
         void ExecuteForwardBackward(
             const std::unordered_map<Variable, ValuePtr>& arguments,
@@ -3902,25 +3896,31 @@ namespace CNTK
     CNTK_API QuantizedDistributedCommunicatorPtr QuantizedMPICommunicator(bool zeroThresholdFor1Bit, bool useQuantizationForSelfStripe, size_t numQuantizationBits);
 
     ///
-    /// Represents an entity controlling a training session..
+    /// Represents an entity controlling a training session.
     ///
-    class TrainingControl
+    class TrainingSession
     {
     public:
-        // Optional callback that gets called before each minbatch during training
-        virtual void PreMinibatchCallback(const Trainer& trainer) = 0;
+        ///
+        /// Runs the session.
+        /// As an argument, takes a map of model variables into streams.
+        ///
+        CNTK_API virtual void Run() = 0;
 
-        // Optional callback that gets called after each minbatch during training
-        // Return value is true if training should be continued.
-        virtual bool PostMinibatchCallback(Trainer& trainer, bool minibatchTrainingResult) = 0;
+        ///
+        /// Restores a session from a checkpoint.
+        ///
+        CNTK_API virtual void RestoreFromCheckpoint(const std::wstring& checkpointFileName) = 0;
 
-        // Returns the desired size of the next minibatch
-        virtual size_t NextMinibatchSize() = 0;
-
-        virtual ~TrainingControl() {}
+        virtual ~TrainingSession() {}
     };
 
-    CNTK_API TrainingControlPtr CreateBasicTrainingControl(size_t mbSize, size_t maxTrainingSamplesCount, size_t checkpointFrequencyinSamples, const std::wstring& chechkpointFileName);
+    CNTK_API TrainingSessionPtr CreateBasicTrainingSession(MinibatchSourcePtr trainingSource,
+        Trainer& trainer,
+        const std::unordered_map<Variable, StreamInformation>& modelInputToMinibatchSourceStream,
+        const MinibatchSizeSchedule& minibatchSizeSchedule,
+        size_t checkpointFrequencyinSamples,
+        const std::wstring& checkPointFileName);
 }
 
 

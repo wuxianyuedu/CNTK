@@ -204,8 +204,8 @@ namespace CNTK
     class DistributedLearner;
     typedef std::shared_ptr<DistributedLearner> DistributedLearnerPtr;
 
-    class TrainingControl;
-    typedef std::shared_ptr<TrainingControl> TrainingControlPtr;
+    class TrainingSession;
+    typedef std::shared_ptr<TrainingSession> TrainingSessionPtr;
 
     namespace Internal
     {
