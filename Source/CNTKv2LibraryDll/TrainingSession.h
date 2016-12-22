@@ -20,7 +20,7 @@ namespace CNTK
             size_t checkpointFrequencyinSamples,
             const std::wstring& checkPointFileName);
 
-        void Run() override;
+        void Run(const DeviceDescriptor& computeDevice) override;
 
         void RestoreFromCheckpoint(const std::wstring& checkpointFileName) override;
 

@@ -51,28 +51,21 @@ namespace
         double learningRatePerSample = 0.02;
 
         Trainer trainer(classifier.output, classifier.trainingLoss, classifier.prediction, { factory({ SGDLearner(classifier.output->Parameters(), LearningRatePerSampleSchedule(learningRatePerSample)) }) });
-        size_t outputFrequencyInMinibatches = 20;
-        size_t currentCheckpointIndex = 0;
         size_t checkpointFrequency = 7000;
-        size_t index = 0;
-        bool updated = true;
-        while (updated)
-        {
-            auto minibatchData = minibatchSource->GetNextMinibatch(minibatchSize, device);
-            if (minibatchData.empty())
-                updated = trainer.TrainMinibatch({}, device);
-            else
-                updated = trainer.TrainMinibatch({ { classifier.features, minibatchData[featureStreamInfo].m_data }, { classifier.labels, minibatchData[labelStreamInfo].m_data } }, device);
 
-            size_t checkpointIndex = trainer.TotalNumberOfSamplesSeen() / checkpointFrequency;
-            if (checkpointIndex > currentCheckpointIndex)
-            {
-                trainer.SaveCheckpoint(L"test");
-                currentCheckpointIndex = checkpointIndex;
-            }
+        TrainingSessionPtr session = CreateBasicTrainingSession(
+            minibatchSource,
+            trainer,
+            { { classifier.features, featureStreamInfo }, { classifier.labels, labelStreamInfo } },
+            MinibatchSizeSchedule(minibatchSize, MinibatchSizeSchedule::UnitType::Sample),
+            checkpointFrequency,
+            L"test");
 
-            PrintTrainingProgress(trainer, index++, outputFrequencyInMinibatches);
-        }
+        session->Run(device);
+
+        double trainLossValue = trainer.PreviousMinibatchLossAverage();
+        double evaluationValue = trainer.PreviousMinibatchEvaluationAverage();
+        printf("Training finished: CrossEntropy loss = %.8g, Evaluation criterion = %.8g\n", trainLossValue, evaluationValue);
     }
 
     FeedForwardClassifier BuildFeedForwardClassifer(const DeviceDescriptor& device)
@@ -110,7 +103,6 @@ namespace
 
 void TestFrameMode()
 {
-    std::this_thread::sleep_for(std::chrono::seconds(16));
     // Create a set of trainers.
     std::map<std::wstring, std::function<DistributedLearnerPtr(LearnerPtr)>> learners;
     learners[L"simple"] = [](LearnerPtr l) { return CreateDataParallelDistributedLearner(MPICommunicator(), l, 0); };

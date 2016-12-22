@@ -3905,7 +3905,7 @@ namespace CNTK
         /// Runs the session.
         /// As an argument, takes a map of model variables into streams.
         ///
-        CNTK_API virtual void Run() = 0;
+        CNTK_API virtual void Run(const DeviceDescriptor& computeDevice) = 0;
 
         ///
         /// Restores a session from a checkpoint.

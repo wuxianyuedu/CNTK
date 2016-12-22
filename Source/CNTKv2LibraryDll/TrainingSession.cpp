@@ -50,14 +50,14 @@ namespace CNTK
             RuntimeError("Currently CNTK only support minibatch size schedule based on samples.");
     }
 
-    void BasicTrainingSession::Run()
+    void BasicTrainingSession::Run(const DeviceDescriptor& computeDevice)
     {
         std::unordered_map<Variable, ValuePtr> minibatch;
         bool shouldTrain = true;
         while (shouldTrain)
         {
             size_t mbSize = m_minibatchSizeSchedule[m_trainer.TotalNumberOfSamplesSeen()];
-            auto minibatchData = m_trainingSource->GetNextMinibatch(mbSize);
+            auto minibatchData = m_trainingSource->GetNextMinibatch(mbSize, computeDevice);
 
             minibatch.clear();
             if (!minibatchData.empty())
@@ -66,7 +66,7 @@ namespace CNTK
                     minibatch.insert({ v.first, minibatchData[v.second].m_data });
             }
 
-            shouldTrain = m_trainer.TrainMinibatch(minibatch);
+            shouldTrain = m_trainer.TrainMinibatch(minibatch, computeDevice);
 
             // Check whether to create a checkpoint
             size_t checkpointIndex = m_trainer.TotalNumberOfSamplesSeen() / m_checkpointFrequencyinSamples;
@@ -94,7 +94,7 @@ namespace CNTK
         externalState[g_trainingMinibatchSource] = m_trainingSource->GetCheckpointState();
 
         std::wstring tempFileName = m_checkPointFileName + L".tmp";
-        m_trainer.SaveCheckpoint(m_checkPointFileName, externalState);
+        m_trainer.SaveCheckpoint(tempFileName, externalState);
 
         _wunlink(m_checkPointFileName.c_str());
         renameOrDie(tempFileName, m_checkPointFileName);
