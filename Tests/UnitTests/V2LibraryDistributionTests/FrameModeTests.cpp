@@ -62,10 +62,6 @@ namespace
             L"test");
 
         session->Run(device);
-
-        double trainLossValue = trainer.PreviousMinibatchLossAverage();
-        double evaluationValue = trainer.PreviousMinibatchEvaluationAverage();
-        printf("Training finished: CrossEntropy loss = %.8g, Evaluation criterion = %.8g\n", trainLossValue, evaluationValue);
     }
 
     FeedForwardClassifier BuildFeedForwardClassifer(const DeviceDescriptor& device)
