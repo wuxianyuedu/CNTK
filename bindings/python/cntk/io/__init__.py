@@ -63,7 +63,7 @@ class MinibatchData(cntk_py.MinibatchData, ArrayMixin):
         or crosses a sweep boundary (and as a result includes data from 
         different sweeps).
         '''
-        return self.data.is_sparse()
+        return self.sweep_end
 
     @property
     def is_sparse(self):

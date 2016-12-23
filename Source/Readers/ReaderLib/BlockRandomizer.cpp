@@ -241,7 +241,6 @@ std::tuple<bool, bool, size_t> BlockRandomizer::GetNextSequenceDescriptions(size
 {
     assert(sampleCount != 0);
 
-    PrepareNewSweepIfNeeded(m_globalSamplePosition);
     auto sweepPosition = m_globalSamplePosition % m_sweepSizeInSamples;
     auto epochEndPosition = m_epochSize + m_epochStartPosition;
 
@@ -252,6 +251,8 @@ std::tuple<bool, bool, size_t> BlockRandomizer::GetNextSequenceDescriptions(size
         auto reachedEndOfSweep = (m_globalSamplePosition >= m_sweepSizeInSamples) && (sweepPosition == 0);
         return std::make_tuple(reachedEndOfSweep, reachedEndOfEpoch, 0);
     }
+
+    PrepareNewSweepIfNeeded(m_globalSamplePosition);
 
     sampleCount = std::min(sampleCount, epochEndPosition - m_globalSamplePosition);
     assert(sampleCount != 0);

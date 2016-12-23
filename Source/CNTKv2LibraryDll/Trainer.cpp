@@ -153,27 +153,30 @@ namespace CNTK
         return (GetScalarValue(outputs[m_aggregatedEvaluationFunction]) / sampleCount);
     }
 
-    bool Trainer::TrainMinibatch(const std::unordered_map<Variable, MinibatchData>& arguments, std::unordered_map<Variable, ValuePtr>& outputsToFetch, const DeviceDescriptor& computeDevice /*= DeviceDescriptor::UseDefaultDevice()*/) 
-    {
-        return TrainMinibatch(GetInputs(arguments), outputsToFetch, IsAtSweepEnd(arguments), computeDevice);
-    }
-
     bool Trainer::TrainMinibatch(const std::unordered_map<Variable, MinibatchData>& arguments, const DeviceDescriptor& computeDevice /*= DeviceDescriptor::UseDefaultDevice()*/) 
     {
-        return TrainMinibatch(GetInputs(arguments), IsAtSweepEnd(arguments), computeDevice);
-    }
-
-    bool Trainer::TrainMinibatch(const std::unordered_map<Variable, ValuePtr>& arguments, bool sweepEnd /*= false*/, const DeviceDescriptor& computeDevice /*= DeviceDescriptor::UseDefaultDevice()*/)
-    {
         std::unordered_map<Variable, ValuePtr> outputsToFetch = {};
-        return TrainMinibatch(arguments, outputsToFetch, sweepEnd, computeDevice);
+        return TrainMinibatch(arguments, outputsToFetch, computeDevice);
     }
 
-    bool Trainer::TrainMinibatch(const std::unordered_map<Variable, ValuePtr>& arguments, std::unordered_map<Variable, ValuePtr>& outputsToFetch, bool sweepEnd /*= false*/, const DeviceDescriptor& computeDevice /*= DeviceDescriptor::UseDefaultDevice()*/)
+    bool Trainer::TrainMinibatch(const std::unordered_map<Variable, MinibatchData>& arguments, std::unordered_map<Variable, ValuePtr>& outputsToFetch, const DeviceDescriptor& computeDevice /*= DeviceDescriptor::UseDefaultDevice()*/)
     {
         if (!m_distributed)
-            return TrainLocalMinibatch(arguments, outputsToFetch, sweepEnd, computeDevice);
-        return TrainDistributedMinibatch(arguments, outputsToFetch, sweepEnd, computeDevice);
+            return TrainLocalMinibatch(GetInputs(arguments), outputsToFetch, IsAtSweepEnd(arguments), computeDevice);
+        return TrainDistributedMinibatch(GetInputs(arguments), outputsToFetch, IsAtSweepEnd(arguments), computeDevice);
+    }
+
+    bool Trainer::TrainMinibatch(const std::unordered_map<Variable, ValuePtr>& arguments, const DeviceDescriptor& computeDevice /*= DeviceDescriptor::UseDefaultDevice()*/)
+    {
+        std::unordered_map<Variable, ValuePtr> outputsToFetch = {};
+        return TrainMinibatch(arguments, outputsToFetch, computeDevice);
+    }
+
+    bool Trainer::TrainMinibatch(const std::unordered_map<Variable, ValuePtr>& arguments, std::unordered_map<Variable, ValuePtr>& outputsToFetch, const DeviceDescriptor& computeDevice /*= DeviceDescriptor::UseDefaultDevice()*/)
+    {
+        if (!m_distributed)
+            return TrainLocalMinibatch(arguments, outputsToFetch, false, computeDevice);
+        return TrainDistributedMinibatch(arguments, outputsToFetch, false, computeDevice);
     }
 
     bool Trainer::TrainLocalMinibatch(const std::unordered_map<Variable, ValuePtr>& arguments, std::unordered_map<Variable, ValuePtr>& outputsToFetch, bool sweepEnd, const DeviceDescriptor& computeDevice /*= DeviceDescriptor::UseDefaultDevice()*/)

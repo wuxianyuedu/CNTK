@@ -3500,10 +3500,9 @@ namespace CNTK
         CNTK_API bool TrainMinibatch(const std::unordered_map<Variable, MinibatchData>& arguments, const DeviceDescriptor& computeDevice = DeviceDescriptor::UseDefaultDevice());
         
         ///
-        /// An overload of the TrainMinibatch above that takes a map of variables and their values (as its first argument), 
-        /// as well as the end-of-sweep flag (second argument, defaults to false).
+        /// An overload of the TrainMinibatch above that takes a map of variables and their values (as its first argument).
         ///
-        CNTK_API bool TrainMinibatch(const std::unordered_map<Variable, ValuePtr>& arguments, bool sweepEnd = false, const DeviceDescriptor& computeDevice = DeviceDescriptor::UseDefaultDevice());
+        CNTK_API bool TrainMinibatch(const std::unordered_map<Variable, ValuePtr>& arguments, const DeviceDescriptor& computeDevice = DeviceDescriptor::UseDefaultDevice());
 
         ///
         /// Optimize model parameters using the specified 'arguments' minibatch of training samples.
@@ -3515,20 +3514,15 @@ namespace CNTK
         CNTK_API bool TrainMinibatch(const std::unordered_map<Variable, MinibatchData>& arguments, std::unordered_map<Variable, ValuePtr>& outputsToFetch, const DeviceDescriptor& computeDevice = DeviceDescriptor::UseDefaultDevice());
 
         ///
-        /// An overload of the TrainMinibatch above that takes a map of variables and their values (as its first argument), 
-        /// as well as the end-of-sweep flag (third argument, defaults to false).
+        /// An overload of the TrainMinibatch above that takes a map of variables and their values (as its first argument).
         ///
-        CNTK_API bool TrainMinibatch(const std::unordered_map<Variable, ValuePtr>& arguments, std::unordered_map<Variable, ValuePtr>& outputsToFetch, bool sweepEnd = false, const DeviceDescriptor& computeDevice = DeviceDescriptor::UseDefaultDevice());
+        CNTK_API bool TrainMinibatch(const std::unordered_map<Variable, ValuePtr>& arguments, std::unordered_map<Variable, ValuePtr>& outputsToFetch, const DeviceDescriptor& computeDevice = DeviceDescriptor::UseDefaultDevice());
 
         ///
         /// Test the model on the specified batch of samples using the evaluation Function specified during construction of the Trainer
         /// Returns the average evaluation criterion value per sample for the tested minibatch of samples
         ///
-        CNTK_API double TestMinibatch(const std::unordered_map<Variable, MinibatchData>& arguments, const DeviceDescriptor& computeDevice = DeviceDescriptor::UseDefaultDevice());
 
-        ///
-        /// An overload of the TestMinibatch above that takes a map of variables and their values (as its first argument).
-        ///
         CNTK_API double TestMinibatch(const std::unordered_map<Variable, ValuePtr>& arguments, const DeviceDescriptor& computeDevice = DeviceDescriptor::UseDefaultDevice());
 
         ///

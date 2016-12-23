@@ -111,30 +111,30 @@ Sequences NoRandomizer::GetNextSequences(size_t sampleCount)
     if (m_globalSamplePosition >= endOfEpochPosition)
     {
         result.m_endOfEpoch = true;
-        result.m_endOfSweep = (m_globalSamplePosition > m_sweepSizeInSamples) && 
+        result.m_endOfSweep = (m_globalSamplePosition >= m_sweepSizeInSamples) && 
             (m_globalSamplePosition % m_sweepSizeInSamples == 0);
         return result;
     }
 
     sampleCount = std::min(sampleCount, endOfEpochPosition - m_globalSamplePosition);
 
-    size_t sweepPosition = m_globalSamplePosition % m_sweepSizeInSamples;
-
-    result.m_endOfSweep = (sweepPosition + sampleCount >= m_sweepSizeInSamples);
-    
     if (!m_config.m_allowMinibatchesToCrossSweepBoundaries)
     {
         // Cut down the required sample count if we're not allowed to go over the
         // sweep boundary
+        size_t sweepPosition = m_globalSamplePosition % m_sweepSizeInSamples;
         sampleCount = std::min(sampleCount, m_sweepSizeInSamples - sweepPosition);
     }
     assert(sampleCount != 0);
 
+    auto sweepIndex = m_globalSamplePosition / m_sweepSizeInSamples;
     std::vector<SequenceDescription> descriptions = GetNextSequenceDescriptions(sampleCount);
     
     // m_globalSamplePosition is already shifted in GetNextSequenceDescriptions() by the current minibatch size.
     // Set the end-of-epoch flag (true when the current batch is last in an epoch).
     result.m_endOfEpoch = (m_globalSamplePosition >= endOfEpochPosition);
+
+    result.m_endOfSweep = sweepIndex != m_globalSamplePosition / m_sweepSizeInSamples;
 
     // Retrieve only sequences that are required by this worker.
     size_t start = descriptions.size() * m_config.m_workerRank / m_config.m_numberOfWorkers;
